@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Нейросеть и человек · Школьный проект</title>
+  <!-- Современные шрифты без засечек -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Roboto', 'SF Pro Display', sans-serif;
+      background: radial-gradient(circle at 30% 10%, #0b1a3a 0%, #030b17 100%);
+      min-height: 100vh;
+      color: #fff;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Абстрактные линии — нейронные связи */
+    .neural-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+    }
+
+    .neural-bg svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* Glassmorphism базовая панель */
+    .glass-card, .hero, .stat-card, .compare-block, .quote-block {
+      background: rgba(15, 30, 55, 0.3);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(100, 180, 255, 0.15);
+      border-radius: 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(0, 255, 200, 0.05) inset;
+      transition: transform 0.25s ease, box-shadow 0.3s ease, border-color 0.2s;
+    }
+
+    /* fade-in при скролле (базово скрыты, активируются js) */
+    .fade-section {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.7s cubic-bezier(0.2, 0.9, 0.3, 1), transform 0.7s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .fade-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ----- HERO ----- */
+    .hero {
+      padding: 3.5rem 2.5rem;
+      margin-bottom: 3rem;
+      text-align: center;
+      background: rgba(10, 22, 45, 0.35);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(0, 230, 200, 0.25);
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 9vw, 4.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #ffffff 0%, #d0e4ff 90%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(0,180,255,0.3);
+    }
+
+    .subhead {
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: #b8d4ff;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn {
+      display: inline-block;
+      background: rgba(0, 210, 200, 0.12);
+      border: 1.5px solid #1ecbe1;
+      color: #e1f7ff;
+      padding: 0.9rem 2.8rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 1.2rem;
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      transition: all 0.25s;
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(0,200,200,0.1);
+    }
+
+    .btn:hover {
+      background: rgba(30, 203, 225, 0.25);
+      border-color: #5ee4ff;
+      box-shadow: 0 0 20px rgba(0, 230, 230, 0.4);
+      transform: scale(1.02);
+      color: white;
+    }
+
+    /* Заголовки секций */
+    .section-title {
+      font-size: 2.4rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      letter-spacing: -0.01em;
+      color: #ffffffec;
+      border-left: 6px solid #1ecbe1;
+      padding-left: 1.5rem;
+    }
+
+    /* Карточки статистики — 3 штуки */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.8rem;
+      margin-top: 1.5rem;
+    }
+
+    .stat-card {
+      padding: 2.2rem 1.2rem;
+      text-align: center;
+      backdrop-filter: blur(14px);
+      background: rgba(18, 36, 70, 0.3);
+      border: 1px solid rgba(70, 180, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    /* hover lift + свечение границы */
+    .stat-card:hover {
+      transform: translateY(-8px);
+      border-color: #1ecbe1;
+      box-shadow: 0 20px 30px -8px rgba(0,0,0,0.6), 0 0 20px rgba(0, 230, 200, 0.15);
+      background: rgba(25, 50, 90, 0.4);
+    }
+
+    .stat-icon {
+      font-size: 3.5rem;
+      margin-bottom: 0.8rem;
+      filter: drop-shadow(0 0 8px #3bc5db);
+    }
+
+    .stat-number {
+      font-size: 3.8rem;
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(to right, #fff, #c0ecff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-desc {
+      font-size: 1.1rem;
+      color: #cfecff;
+      font-weight: 400;
+      padding: 0 0.3rem;
+    }
+
+    /* Сравнение — два блока */
+    .compare-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    .compare-block {
+      flex: 1 1 280px;
+      padding: 2.2rem 2rem;
+      background: rgba(10, 25, 50, 0.3);
+      backdrop-filter: blur(14px);
+      transition: all 0.25s;
+      border: 1px solid rgba(120, 180, 255, 0.15);
+    }
+
+    /* hover lift для блоков сравнения */
+    .compare-block:hover {
+      transform: translateY(-6px);
+      border-color: rgba(30, 203, 225, 0.5);
+      box-shadow: 0 15px 25px -5px #0000004d;
+    }
+
+    /* правый блок выделен бирюзовой рамкой + свечение */
+    .block-ai {
+      border: 2px solid #1ecbe1 !important;
+      box-shadow: 0 0 18px rgba(30, 203, 225, 0.2), 0 10px 20px #00000040;
+      background: rgba(0, 100, 120, 0.1);
+    }
+
+    .block-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .block-ai .block-title {
+      color: #b3f5ff;
+    }
+
+    .time-badge {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin: 0.5rem 0 0.8rem;
+      color: #f0fcff;
+    }
+
+    .result-text {
+      font-size: 1.2rem;
+      opacity: 0.95;
+      border-top: 1px dashed rgba(255,255,255,0.2);
+      padding-top: 1.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .block-ai .result-text {
+      color: #d6f9ff;
+      font-weight: 500;
+    }
+
+    /* Цитата — импакт */
+    .quote-block {
+      margin: 3.5rem 0 1rem;
+      padding: 3rem 3.5rem;
+      text-align: center;
+      background: rgba(20, 45, 80, 0.2);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 230, 250, 0.25);
+    }
+
+    .quote-text {
+      font-size: clamp(1.5rem, 5vw, 2.3rem);
+      font-weight: 500;
+      line-height: 1.4;
+      color: #ffffff;
+      text-shadow: 0 2px 8px #00000030;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .quote-text::before {
+      content: "“";
+      font-size: 3rem;
+      color: #1ecbe1;
+      margin-right: 5px;
+    }
+    .quote-text::after {
+      content: "”";
+      font-size: 3rem;
+      color: #1ecbe1;
+      margin-left: 5px;
+      vertical-align: bottom;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 700px) {
+      .wrapper { padding: 1.5rem 1rem 2.5rem; }
+      .hero { padding: 2.5rem 1.2rem; }
+      .stats-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+      .section-title { font-size: 2rem; }
+      .compare-row { flex-direction: column; }
+      .quote-block { padding: 2rem 1.5rem; }
+    }
+
+    /* утилиты */
+    .mb-1 { margin-bottom: 0.5rem; }
+    .mt-2 { margin-top: 2rem; }
+    .text-accent { color: #1ecbe1; }
+
+    /* иконки (текстовые эмодзи/символы, но в стиле) */
+    .icon-eye::before { content: "👁️‍🗨️"; font-size: 2.5rem; display: block; margin-bottom: 0.2rem; }
+    .icon-phone::before { content: "📱"; font-size: 2.5rem; display: block; margin-bottom: 0.2rem; }
+    .icon-brain::before { content: "🧠"; font-size: 2.5rem; display: block; margin-bottom: 0.2rem; }
+
+    /* декоративные линии на фоне — вставлены через svg */
+  </style>
+</head>
+<body>
+  <!-- Нейронные абстрактные линии (SVG) -->
+  <div class="neural-bg">
+    <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2a6f9c" stop-opacity="0.5" />
+          <stop offset="50%" stop-color="#5b3e8c" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#1ecbe1" stop-opacity="0.2" />
+        </linearGradient>
+      </defs>
+      <!-- Нейросетевые соединения -->
+      <g stroke="url(#lineGrad)" stroke-width="1.8" fill="none" opacity="0.5">
+        <!-- узлы -->
+        <circle cx="150" cy="180" r="4" fill="#4ab7ff" />
+        <circle cx="380" cy="80" r="5" fill="#a370f0" />
+        <circle cx="750" cy="220" r="3.5" fill="#1ecbe1" />
+        <circle cx="1050" cy="150" r="6" fill="#3e8edd" />
+        <circle cx="200" cy="520" r="5" fill="#976ae0" />
+        <circle cx="600" cy="450" r="4.5" fill="#1ecbe1" />
+        <circle cx="900" cy="600" r="4" fill="#5299e0" />
+        <circle cx="1100" cy="500" r="5" fill="#a36ef0" />
+        <circle cx="80" cy="700" r="3" fill="#1ecbe1" />
+        <circle cx="450" cy="700" r="5" fill="#4f9fcf" />
+        <!-- линии между ними -->
+        <path d="M150,180 L380,80 L750,220 L1050,150" />
+        <path d="M150,180 L200,520 L600,450 L900,600" />
+        <path d="M380,80 L600,450" />
+        <path d="M750,220 L900,600 L1100,500" />
+        <path d="M200,520 L450,700 L900,600" />
+        <path d="M1050,150 L1100,500" />
+        <path d="M80,700 L200,520" />
+        <path d="M600,450 L750,220" />
+        <path d="M450,700 L600,450" />
+        <!-- дополнительные ответвления -->
+        <path d="M380,80 L200,520" stroke-dasharray="6 8" />
+        <path d="M750,220 L450,700" stroke-dasharray="4 6" />
+      </g>
+      <g fill="#1ecbe1" opacity="0.18">
+        <circle cx="250" cy="300" r="2.5" />
+        <circle cx="850" cy="350" r="2" />
+        <circle cx="550" cy="180" r="2.8" />
+      </g>
+    </svg>
+  </div>
+
+  <div class="wrapper">
+    <!-- Hero Section -->
+    <section class="hero fade-section" id="hero">
+      <h1>Как нейросеть повлияла<br>на жизнь человека</h1>
+      <div class="subhead">Исследовательский проект. Информатика, 9 класс</div>
+      <a class="btn" href="#results">Смотреть результаты</a>
+    </section>
+
+    <!-- Раздел 1: Влияние на повседневность (Опрос) -->
+    <section class="fade-section" id="survey">
+      <h2 class="section-title">Нейросети уже рядом</h2>
+      <div style="margin-bottom: 0.5rem; font-size: 1.2rem; opacity: 0.9; max-width: 700px;">
+        В ходе опроса 25 человек (учеников и взрослых) мы выяснили, что ИИ стал невидимой частью рутины.
+      </div>
+
+      <div class="stats-grid">
+        <!-- Карточка 1 -->
+        <div class="stat-card">
+          <div class="stat-icon icon-eye"></div>
+          <div class="stat-number">100%</div>
+          <div class="stat-desc">Знают, что такое нейросеть</div>
+        </div>
+        <!-- Карточка 2 -->
+        <div class="stat-card">
+          <div class="stat-icon icon-phone"></div>
+          <div class="stat-number">60%</div>
+          <div class="stat-desc">Используют ИИ каждый день (ленты, Алиса, навигатор)</div>
+        </div>
+        <!-- Карточка 3 -->
+        <div class="stat-card">
+          <div class="stat-icon icon-brain"></div>
+          <div class="stat-number">48%</div>
+          <div class="stat-desc">Не замечают работу ИИ в соцсетях (умные рекомендации)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Раздел 2: Влияние на скорость работы (Эксперимент) -->
+    <section class="fade-section mt-2" id="experiment">
+      <h2 class="section-title">Как ИИ ускоряет творчество</h2>
+
+      <div class="compare-row">
+        <!-- Левый блок: Человек -->
+        <div class="compare-block">
+          <div class="block-title">
+            <span style="background: #2f5580; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 10px;"></span>
+            Традиционный поиск
+          </div>
+          <div class="time-badge">⏱️ 12 минут</div>
+          <div class="result-text">Картинка из интернета, не уникальная, среднее качество</div>
+        </div>
+
+        <!-- Правый блок: Нейросеть (выделен бирюзовым) -->
+        <div class="compare-block block-ai">
+          <div class="block-title">
+            <span style="background: #1ecbe1; width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 10px; box-shadow: 0 0 12px #1ecbe1;"></span>
+            Генерация в Kandinsky
+          </div>
+          <div class="time-badge">⚡ 1 мин 20 сек</div>
+          <div class="result-text">Уникальный концепт-арт под задачу</div>
+          <div style="margin-top: 1rem; font-size: 0.9rem; color: #a0e0ff;">✓ визуализация идеи за секунды</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Раздел 3: Главный вывод (Импакт) -->
+    <section class="fade-section" id="conclusion">
+      <div class="quote-block">
+        <div class="quote-text">
+          Нейросеть сократила время на решение творческой задачи в 9 раз. Главное влияние — это смена роли человека с исполнителя на управленца
+        </div>
+      </div>
+    </section>
+
+    <!-- Скрытый якорь для плавности (ничего лишнего) -->
+    <div id="results" style="position: relative; top: -40px;"></div>
+
+    <footer style="margin-top: 3.5rem; text-align: center; opacity: 0.7; font-size: 0.9rem; color: #b0d0f0;">
+      Школьный проект · Информатика · 2026
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      "use strict";
+
+      // Fade-in анимация при прокрутке (строгий, плавный)
+      const fadeElements = document.querySelectorAll('.fade-section');
+
+      function checkFade() {
+        fadeElements.forEach(el => {
+          const rect = el.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+          // Элемент становится видимым когда верхняя граница ниже 85% высоты окна
+          const isVisible = rect.top < windowHeight * 0.85 && rect.bottom > 80;
+          if (isVisible) {
+            el.classList.add('visible');
+          } else {
+            // (опционально: можно убрать класс, но оставим, чтобы не исчезало)
+            // мы не удаляем visible, чтобы анимация не повторялась обратно (умеренность)
+          }
+        });
+      }
+
+      // Для первого рендера — сразу покажем hero (он может быть видим)
+      window.addEventListener('DOMContentLoaded', function() {
+        // принудительно сделаем видимым hero и то, что в зоне видимости
+        checkFade();
+        // если hero ещё не visible — добавим (на случай если скрипт чуть позже)
+        const heroEl = document.getElementById('hero');
+        if (heroEl) heroEl.classList.add('visible');
+      });
+
+      // Используем requestAnimationFrame для плавности
+      let ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          window.requestAnimationFrame(function() {
+            checkFade();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
+
+      // Также плавный переход по кнопке "Смотреть результаты"
+      const resultBtn = document.querySelector('.btn');
+      if (resultBtn) {
+        resultBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const target = document.getElementById('survey'); // прокрутим к первому разделу
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
+
+      // Дополнительно: при загрузке страницы, если есть хэш #results, скроллим
+      if (window.location.hash === '#results') {
+        setTimeout(() => {
+          const survey = document.getElementById('survey');
+          if (survey) survey.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+
+      // Небольшая проверка для карточек — hover lift уже в css.
+      // Для совместимости добавим мягкость всем стеклянным блокам.
+
+      // Убедимся, что правый блок AI всегда подсвечен (уже в стилях)
+      // Добавим "отзывчивость" цитате
+    })();
+  </script>
+
+  <!-- Небольшой фикс для сверхмалых экранов -->
+  <style>
+    @media (max-width: 480px) {
+      .stat-number { font-size: 3rem; }
+      .block-title { font-size: 1.5rem; }
+      .btn { padding: 0.7rem 1.8rem; font-size: 1rem; }
+    }
+    /* Дополнительный акцент: бирюзовая рамка на правом блоке при наведении ещё ярче */
+    .block-ai:hover {
+      border-color: #7df2ff !important;
+      box-shadow: 0 0 28px rgba(30, 203, 225, 0.45), 0 12px 22px #00000050;
+    }
+    /* плавный переход всех карточек */
+    .stat-card, .compare-block, .hero, .quote-block {
+      transition: opacity 0.7s ease, transform 0.3s ease, box-shadow 0.3s, border-color 0.25s, background 0.2s;
+    }
+    /* чтобы разделы не дергались при visibility */
+    .fade-section {
+      will-change: opacity, transform;
+    }
+  </style>
+</body>
+</html>
