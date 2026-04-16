@@ -110,7 +110,7 @@
         /* Карточки с данными */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin: 40px 0;
         }
@@ -130,7 +130,6 @@
         .stat-card:nth-child(1) { animation-delay: 0.1s; }
         .stat-card:nth-child(2) { animation-delay: 0.2s; }
         .stat-card:nth-child(3) { animation-delay: 0.3s; }
-        .stat-card:nth-child(4) { animation-delay: 0.4s; }
 
         .stat-card:hover {
             transform: translateY(-8px);
@@ -195,7 +194,7 @@
         /* Эксперименты */
         .experiments-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 25px;
         }
 
@@ -213,7 +212,6 @@
         .exp-card:nth-child(1) { animation-delay: 0.1s; }
         .exp-card:nth-child(2) { animation-delay: 0.2s; }
         .exp-card:nth-child(3) { animation-delay: 0.3s; }
-        .exp-card:nth-child(4) { animation-delay: 0.4s; }
 
         .exp-card:hover {
             transform: scale(1.02);
@@ -340,7 +338,7 @@
             margin-top: 3px;
         }
 
-        /* Фото-сравнение (специальный блок для 4-го эксперимента) */
+        /* Фото-сравнение */
         .photo-comparison {
             display: flex;
             gap: 20px;
@@ -440,6 +438,12 @@
         }
 
         /* Адаптация под мобильные */
+        @media (max-width: 900px) {
+            .experiments-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -514,26 +518,22 @@
                 <i class="fas fa-robot" style="margin-right: 8px;"></i> ПРОЕКТ • 2026
             </div>
             <h1>Нейросети меняют<br>нашу жизнь</h1>
-            <p class="subtitle">Практическое исследование влияния искусственного интеллекта на учёбу, быт и творчество современного человека</p>
+            <p class="subtitle">Практическое исследование влияния искусственного интеллекта на путешествия, творчество и повседневные задачи</p>
         </header>
 
         <!-- Ключевые цифры -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number">78%</div>
-                <div class="stat-label">экономия времени в учёбе</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-number">92%</div>
                 <div class="stat-label">быстрее планирование</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">5x</div>
-                <div class="stat-label">рост продуктивности</div>
+                <div class="stat-number">86%</div>
+                <div class="stat-label">экономия в творчестве</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">4</div>
-                <div class="stat-label">эксперимента проведено</div>
+                <div class="stat-number">95%</div>
+                <div class="stat-label">быстрее обработка фото</div>
             </div>
         </div>
 
@@ -552,33 +552,9 @@
 
         <!-- Практическая часть: эксперименты -->
         <section>
-            <h2><i class="fas fa-flask"></i> Практическая часть • 4 эксперимента</h2>
+            <h2><i class="fas fa-flask"></i> Практическая часть • 3 эксперимента</h2>
             <div class="experiments-grid">
-                <!-- Эксперимент 1: Учёба (Алгебра) -->
-                <div class="exp-card">
-                    <div class="exp-header">
-                        <div class="exp-icon"><i class="fas fa-square-root-alt"></i></div>
-                        <div class="exp-title">Учёба</div>
-                    </div>
-                    <p style="margin-bottom: 15px; color: #b0c7e9;">Подготовка к контрольной работе по алгебре (тема: «Квадратные уравнения»)</p>
-                    <div class="exp-comparison">
-                        <div class="exp-before">
-                            <div class="exp-label">Без нейросети</div>
-                            <div class="exp-time">65 мин</div>
-                        </div>
-                        <div style="align-self: center; color: #7aa9ff;">→</div>
-                        <div class="exp-after">
-                            <div class="exp-label">С YaGPT</div>
-                            <div class="exp-time">14 мин</div>
-                        </div>
-                    </div>
-                    <div style="text-align: center;">
-                        <span class="exp-save"><i class="fas fa-clock" style="margin-right: 6px;"></i>Экономия 51 минута (78%)</span>
-                    </div>
-                    <p style="margin-top: 18px; font-size: 14px; color: #a0b8d4;"><i class="fas fa-check-circle" style="color: #6fcf97; margin-right: 6px;"></i>Разбор дискриминанта и теоремы Виета с примерами</p>
-                </div>
-
-                <!-- Эксперимент 2: Путешествия по России -->
+                <!-- Эксперимент 1: Путешествия по России -->
                 <div class="exp-card">
                     <div class="exp-header">
                         <div class="exp-icon"><i class="fas fa-map-location-dot"></i></div>
@@ -602,7 +578,7 @@
                     <p style="margin-top: 18px; font-size: 14px; color: #a0b8d4;"><i class="fas fa-check-circle" style="color: #6fcf97; margin-right: 6px;"></i>Маршрут: Териберка, Плато Путорана, Ленские столбы и др.</p>
                 </div>
 
-                <!-- Эксперимент 3: Творчество -->
+                <!-- Эксперимент 2: Творчество -->
                 <div class="exp-card">
                     <div class="exp-header">
                         <div class="exp-icon"><i class="fas fa-paint-brush"></i></div>
@@ -626,7 +602,7 @@
                     <p style="margin-top: 18px; font-size: 14px; color: #a0b8d4;"><i class="fas fa-check-circle" style="color: #6fcf97; margin-right: 6px;"></i>Абсолютно уникальное изображение</p>
                 </div>
 
-                <!-- Эксперимент 4: Фото с ИИ -->
+                <!-- Эксперимент 3: Фото с ИИ -->
                 <div class="exp-card">
                     <div class="exp-header">
                         <div class="exp-icon"><i class="fas fa-camera"></i></div>
@@ -680,7 +656,7 @@
                 <div class="pros-box">
                     <h3><i class="fas fa-plus-circle" style="color: #6fcf97;"></i> Плюсы</h3>
                     <ul>
-                        <li><i class="fas fa-check"></i> <strong>Экономия времени</strong> — задачи выполняются в 5–8 раз быстрее</li>
+                        <li><i class="fas fa-check"></i> <strong>Экономия времени</strong> — задачи выполняются в 5–10 раз быстрее</li>
                         <li><i class="fas fa-check"></i> <strong>Доступность знаний</strong> — сложные темы объясняются просто</li>
                         <li><i class="fas fa-check"></i> <strong>Снятие творческих барьеров</strong> — рисовать может каждый</li>
                         <li><i class="fas fa-check"></i> <strong>Улучшение фото</strong> — ИИ делает снимки качественнее</li>
