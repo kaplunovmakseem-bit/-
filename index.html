@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Приглашение в Видное | Билеты на поезд</title>
     <style>
         * {
@@ -14,11 +14,12 @@
         body {
             background: linear-gradient(145deg, #f9e7b3 0%, #f5b87a 50%, #e8a06e 100%);
             background-attachment: fixed;
-            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, sans-serif;
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
             padding: 2rem 1rem;
             min-height: 100vh;
         }
 
+        /* Анимации */
         @keyframes floatIn {
             0% {
                 opacity: 0;
@@ -46,7 +47,7 @@
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.96);
             border-radius: 56px;
@@ -55,6 +56,7 @@
             animation: floatIn 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
         }
 
+        /* Приветствие */
         .greeting-block {
             background: linear-gradient(135deg, #ffd89b, #f9a66c);
             padding: 2rem 2rem;
@@ -82,6 +84,7 @@
             margin-bottom: 6px;
         }
 
+        /* Шапка */
         .header {
             background: linear-gradient(95deg, #2b4b6e, #1f3e5c);
             color: white;
@@ -95,70 +98,162 @@
             font-weight: 700;
         }
 
-        .content {
-            padding: 2rem;
+        .header p {
+            opacity: 0.9;
+            margin-top: 0.3rem;
         }
 
-        /* Краткая информация */
-        .info-cards {
+        /* Контент */
+        .content {
+            padding: 2.2rem 2rem;
+        }
+
+        /* Карточки общей информации */
+        .cards-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 1.8rem;
             margin-bottom: 2rem;
             justify-content: center;
         }
 
-        .info-card {
+        .card {
             background: #ffffff;
             flex: 1;
-            min-width: 180px;
-            padding: 1rem;
-            border-radius: 28px;
-            box-shadow: 0 10px 20px -8px rgba(0,0,0,0.1);
-            text-align: center;
-            border: 1px solid #ffe0b5;
+            min-width: 200px;
+            padding: 1.2rem 1rem;
+            border-radius: 32px;
+            box-shadow: 0 15px 25px -12px rgba(0,0,0,0.1);
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255,185,120,0.3);
         }
 
-        .info-card h3 {
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: #ffb347;
+        }
+
+        .card h3 {
+            font-size: 1.4rem;
             color: #c45b2c;
-            margin-bottom: 0.4rem;
-        }
-
-        /* ПРОСМОТР PDF */
-        .pdf-viewer-block {
-            margin: 2rem 0;
-            text-align: center;
-        }
-
-        .pdf-viewer-block h2 {
-            font-size: 1.8rem;
-            color: #bc5a2c;
-            margin-bottom: 1rem;
+            margin-bottom: 0.6rem;
             font-weight: 700;
         }
 
-        .pdf-container {
-            background: #2c3e50;
-            border-radius: 24px;
-            padding: 1rem;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        .card p {
+            color: #2f4858;
+            line-height: 1.4;
         }
 
-        .pdf-embed {
-            width: 100%;
-            height: 700px;
-            border-radius: 16px;
-            border: none;
-            background: white;
+        .route-card {
+            background: linear-gradient(115deg, #fff2e0, #ffe3cd);
+            border-radius: 32px;
+            padding: 1.2rem 2rem;
+            margin: 1rem 0 2rem;
+            border-left: 8px solid #f5a65a;
+            font-weight: 500;
         }
 
-        .pdf-note {
-            margin-top: 0.8rem;
-            color: #6a4c2c;
+        /* БЛОК БИЛЕТОВ (ПРЯМО ИЗ PDF) */
+        .tickets-section {
+            margin: 2.5rem 0;
+        }
+
+        .tickets-section h2 {
+            font-size: 1.9rem;
+            color: #bc5a2c;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+
+        .tickets-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        /* Стиль карточки билета — как в билете */
+        .ticket {
+            background: #fffef7;
+            width: 380px;
+            border-radius: 28px;
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: transform 0.25s ease;
+            border: 1px solid #ffe0b5;
+        }
+
+        .ticket:hover {
+            transform: translateY(-8px);
+        }
+
+        .ticket-header {
+            background: #1f3e5c;
+            color: white;
+            padding: 0.8rem;
+            text-align: center;
+            font-weight: bold;
             font-size: 0.9rem;
+            letter-spacing: 1px;
         }
 
-        /* Кнопка скачивания */
+        .ticket-body {
+            padding: 1.5rem;
+        }
+
+        .passenger-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #c45b2c;
+            text-align: center;
+            margin-bottom: 1rem;
+            border-bottom: 2px dotted #ffd5a4;
+            padding-bottom: 0.5rem;
+        }
+
+        .ticket-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.6rem 0;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .ticket-row strong {
+            color: #bc5a2c;
+        }
+
+        .badge-small {
+            background: #f5a65a20;
+            color: #a55117;
+            border-radius: 20px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .ticket-footer {
+            background: #fff4e8;
+            padding: 0.8rem;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #7a5a3a;
+            border-top: 1px solid #ffe0b5;
+        }
+
+        .price-note {
+            background: #fef1e0;
+            border-radius: 20px;
+            padding: 0.4rem;
+            text-align: center;
+            margin-top: 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Кнопка скачивания PDF */
         .download-area {
             text-align: center;
             margin: 2rem 0 1rem;
@@ -215,10 +310,10 @@
             border-top: 2px solid #ffb770;
         }
 
-        @media (max-width: 750px) {
+        @media (max-width: 850px) {
+            .ticket { width: 100%; max-width: 400px; margin: 0 auto; }
             .greeting-text { font-size: 1.2rem; }
-            .header h1 { font-size: 1.3rem; }
-            .pdf-embed { height: 500px; }
+            .header h1 { font-size: 1.4rem; }
         }
     </style>
 </head>
@@ -235,51 +330,101 @@
 
     <div class="header">
         <h1>🚂 Волгоград → Видное (Московская область)</h1>
-        <p>Июль 2026 · Железнодорожные билеты</p>
+        <p>Июль 2026 · Тёплый поезд, нижние полки, полный комфорт</p>
     </div>
 
     <div class="content">
         <!-- Краткая информация -->
-        <div class="info-cards">
-            <div class="info-card"><h3>👵👴 Пассажиры</h3><p>Людмила Васильевна<br>Валерий Михайлович</p></div>
-            <div class="info-card"><h3>🗓️ Отправление</h3><p><strong>01.07.2026 15:55</strong></p></div>
-            <div class="info-card"><h3>🚞 Поезд</h3><p>№002, вагон 09<br>места 021 и 023</p></div>
+        <div class="cards-grid">
+            <div class="card"><h3>👵👴 Пассажиры</h3><p>Людмила Васильевна<br>Валерий Михайлович</p></div>
+            <div class="card"><h3>🗓️ Отправление</h3><p><strong>01.07.2026, 15:55</strong><br>Прибытие 02.07.2026, 09:30</p></div>
+            <div class="card"><h3>🚞 Поезд / Вагон</h3><p>№002 «Волгоград — Москва»<br>Вагон 09, купе</p></div>
+            <div class="card"><h3>💺 Места</h3><p>021 и 023 (обе нижние)</p></div>
         </div>
 
-        <!-- ПРОСМОТР PDF-ФАЙЛА (ТОТ САМЫЙ БИЛЕТ) -->
-        <div class="pdf-viewer-block">
-            <h2>🎫 Ваши электронные билеты</h2>
-            <div class="pdf-container">
-                <iframe src="/static/билеты.pdf#toolbar=1&navpanes=1" class="pdf-embed" title="Билеты на поезд">
-                    Ваш браузер не поддерживает просмотр PDF. <a href="/static/билеты.pdf">Скачайте билеты</a>
-                </iframe>
-            </div>
-            <div class="pdf-note">
-                👆 Листайте страницы, приближайте — билеты полностью оригинальные
+        <div class="route-card">
+            🛤️ <strong>Маршрут:</strong> Поезд до Москвы → 15 минут на такси / электричке → Видное, наша дача.<br>
+            Время в пути: 17 ч 35 мин · 1 ночь с постельным бельём и питанием.
+        </div>
+
+        <!-- БИЛЕТЫ, ВСТАВЛЕННЫЕ ИЗ ФАЙЛА -->
+        <div class="tickets-section">
+            <h2>🎫 Ваши электронные билеты (оригинальные данные)</h2>
+            <div class="tickets-container">
+                
+                <!-- БИЛЕТ №1: ЛЮДМИЛА ВАСИЛЬЕВНА (страница 1 PDF) -->
+                <div class="ticket">
+                    <div class="ticket-header">
+                        🚆 ЭЛЕКТРОННЫЙ БИЛЕТ / ПАССАЖИР 🚆
+                    </div>
+                    <div class="ticket-body">
+                        <div class="passenger-name">Каплунова Людмила Васильевна</div>
+                        <div class="ticket-row"><span>📄 Паспорт:</span><strong>РФ 1807 123439</strong></div>
+                        <div class="ticket-row"><span>📅 Дата рождения:</span><strong>03.05.1954</strong></div>
+                        <div class="ticket-row"><span>🚉 Маршрут:</span><strong>Волгоград → Москва</strong></div>
+                        <div class="ticket-row"><span>🚞 Поезд / Вагон:</span><strong>№002 / Вагон 09</strong></div>
+                        <div class="ticket-row"><span>💺 Место:</span><strong>021 (Купе, Нижнее)</strong></div>
+                        <div class="ticket-row"><span>🕒 Отправление:</span><strong>01.07.2026 15:55 МСК</strong></div>
+                        <div class="ticket-row"><span>⏱️ Прибытие:</span><strong>02.07.2026 09:30 МСК</strong></div>
+                        <div class="ticket-row"><span>⏳ Время в пути:</span><strong>17ч 35мин / 1 ночь</strong></div>
+                        <div class="ticket-row"><span>🍽️ Питание:</span><strong>1 рацион</strong></div>
+                        <div class="ticket-row"><span>🛏️ Постель:</span><strong>1 комплект</strong></div>
+                        <div class="ticket-row"><span>🎫 Тариф:</span><strong>Полный (2Т)</strong> <span class="badge-small">Фирменный</span></div>
+                        <div class="price-note">✅ Включено: мультимедиа, место для багажа, вагон-ресторан</div>
+                    </div>
+                    <div class="ticket-footer">
+                        Заказ №74566224904910 • Оформлен 24.05.2026<br>
+                        Посадка по паспорту • Возврат онлайн до 01.07.2026 15:55
+                    </div>
+                </div>
+
+                <!-- БИЛЕТ №2: ВАЛЕРИЙ МИХАЙЛОВИЧ (страница 2 PDF) -->
+                <div class="ticket">
+                    <div class="ticket-header">
+                        🚆 ЭЛЕКТРОННЫЙ БИЛЕТ / ПАССАЖИР 🚆
+                    </div>
+                    <div class="ticket-body">
+                        <div class="passenger-name">Каплунов Валерий Михайлович</div>
+                        <div class="ticket-row"><span>📄 Паспорт:</span><strong>РФ 1801 848157</strong></div>
+                        <div class="ticket-row"><span>📅 Дата рождения:</span><strong>20.07.1949</strong></div>
+                        <div class="ticket-row"><span>🚉 Маршрут:</span><strong>Волгоград → Москва</strong></div>
+                        <div class="ticket-row"><span>🚞 Поезд / Вагон:</span><strong>№002 / Вагон 09</strong></div>
+                        <div class="ticket-row"><span>💺 Место:</span><strong>023 (Купе, Нижнее)</strong></div>
+                        <div class="ticket-row"><span>🕒 Отправление:</span><strong>01.07.2026 15:55 МСК</strong></div>
+                        <div class="ticket-row"><span>⏱️ Прибытие:</span><strong>02.07.2026 09:30 МСК</strong></div>
+                        <div class="ticket-row"><span>⏳ Время в пути:</span><strong>17ч 35мин / 1 ночь</strong></div>
+                        <div class="ticket-row"><span>🍽️ Питание:</span><strong>1 рацион</strong></div>
+                        <div class="ticket-row"><span>🛏️ Постель:</span><strong>1 комплект</strong></div>
+                        <div class="ticket-row"><span>🎫 Тариф:</span><strong>Полный (2Т)</strong> <span class="badge-small">Фирменный</span></div>
+                        <div class="price-note">✅ В вагоне: мультимедийный портал, багажное купе, вагон-ресторан</div>
+                    </div>
+                    <div class="ticket-footer">
+                        Заказ №74566224904910 • Купон сформирован 24.05.2026<br>
+                        Запрещён провоз животных • Нумерация вагонов с хвоста поезда
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Кнопка скачивания (на случай, если захотят сохранить) -->
+        <!-- КНОПКА СКАЧИВАНИЯ ФАЙЛА (если нужен оригинал PDF) -->
         <div class="download-area">
-            <a href="/download/билеты.pdf" class="btn-download">📎 Скачать билеты (PDF)</a>
+            <a href="/download/билеты.pdf" class="btn-download">📎 Скачать оригинал билетов (PDF)</a>
             <div class="ticket-meta">
-                Заказ № 74566224904910 · Оформлен 24.05.2026<br>
-                Перевозчик: АО «ФПК» (ФПК Приволжский) · ИНН 7708709686<br>
-                Возврат онлайн возможен до 01.07.2026 15:55
+                Перевозчик: АО «ФПК» (ФПК Приволжский) ИНН 7708709686<br>
+                Электронный билет действителен при предъявлении паспорта. Посадочный купон не требуется.
             </div>
         </div>
 
         <div class="extra-stuff">
-            <span>🆔 Посадка по паспорту (оригинал!)</span>
-            <span>🧳 Багаж под полкой + багажное купе</span>
-            <span>🍽️ Питание: 1 рацион · Постельное бельё: 1 комплект</span>
-            <span>🚫 Провоз животных запрещён</span>
+            <span>🆔 Для посадки — паспорт РФ (строго!)</span>
+            <span>🧳 Багаж можно разместить под полкой</span>
+            <span>♻️ Вместо авто: снижение CO₂ на ~60.88 кг</span>
+            <span>🚫 Животных в вагоне нет</span>
         </div>
     </div>
 
     <div class="footer">
-        Электронный билет — предъявление посадочного купона не требуется.<br>
-        Счастливого пути! Ждём вас в гости в Видном.
+        Билеты оформлены по правилам ОАО «РЖД» / ФПК. Счастливого пути и ждём вас в гости!
     </div>
 </div>
 </body>
