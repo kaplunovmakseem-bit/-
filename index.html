@@ -2,14 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Нейросети: влияние на жизнь • Проект</title>
-    <!-- Подключение шрифта Montserrat -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome для иконок -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приглашение в Видное | Билеты на поезд</title>
     <style>
         * {
             margin: 0;
@@ -18,683 +12,275 @@
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #0b0f1c 0%, #1a1f35 50%, #0d1322 100%);
-            color: #eef2ff;
-            line-height: 1.6;
-            overflow-x: hidden;
-            position: relative;
+            background: linear-gradient(145deg, #f9e7b3 0%, #f5b87a 50%, #e8a06e 100%);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, sans-serif;
+            padding: 2rem 1rem;
+            min-height: 100vh;
         }
 
-        /* Анимированный фон с частицами */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: translateY(40px) scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
-        .particle {
-            position: absolute;
-            background: radial-gradient(circle, rgba(100, 180, 255, 0.4) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: floatParticle 20s infinite ease-in-out;
+        @keyframes buttonPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 6px 14px rgba(231, 111, 81, 0.3);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 12px 24px rgba(231, 111, 81, 0.5);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 6px 14px rgba(231, 111, 81, 0.3);
+            }
         }
 
-        @keyframes floatParticle {
-            0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.3; }
-            25% { transform: translateY(-30px) translateX(15px) scale(1.2); opacity: 0.6; }
-            50% { transform: translateY(-60px) translateX(-10px) scale(0.9); opacity: 0.4; }
-            75% { transform: translateY(-20px) translateX(-25px) scale(1.1); opacity: 0.5; }
-        }
-
-        /* Основной контейнер */
         .container {
-            position: relative;
-            z-index: 2;
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 56px;
+            overflow: hidden;
+            box-shadow: 0 35px 55px rgba(0, 0, 0, 0.25);
+            animation: floatIn 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
         }
 
-        /* Шапка */
-        header {
+        .greeting-block {
+            background: linear-gradient(135deg, #ffd89b, #f9a66c);
+            padding: 2rem 2rem;
             text-align: center;
-            padding: 60px 20px 40px;
-            animation: fadeInDown 1s ease-out;
+            border-bottom: 3px solid #ffc285;
         }
 
-        .badge {
-            display: inline-block;
-            background: rgba(100, 180, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(100, 180, 255, 0.3);
-            padding: 8px 24px;
-            border-radius: 100px;
-            font-size: 14px;
-            font-weight: 500;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            color: #a0c8ff;
-            animation: pulseGlow 3s infinite;
-        }
-
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(100, 180, 255, 0.1); }
-            50% { box-shadow: 0 0 25px rgba(100, 180, 255, 0.3); }
-        }
-
-        h1 {
-            font-size: clamp(32px, 8vw, 56px);
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffffff, #a0c8ff, #7aa9ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 15px;
-            line-height: 1.2;
-            text-shadow: 0 0 30px rgba(100, 180, 255, 0.3);
-        }
-
-        .subtitle {
-            font-size: clamp(16px, 4vw, 20px);
-            color: #b0c7e9;
-            max-width: 700px;
-            margin: 0 auto;
-            font-weight: 300;
-        }
-
-        /* Карточки с данными */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin: 40px 0;
-        }
-
-        .stat-card {
-            background: rgba(20, 30, 50, 0.6);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(100, 180, 255, 0.2);
-            border-radius: 24px;
-            padding: 25px 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-            animation: fadeInUp 0.8s ease-out forwards;
-            opacity: 0;
-        }
-
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.2s; }
-        .stat-card:nth-child(3) { animation-delay: 0.3s; }
-
-        .stat-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(100, 180, 255, 0.5);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 20px rgba(100, 180, 255, 0.2);
-        }
-
-        .stat-number {
-            font-size: 42px;
-            font-weight: 800;
-            color: #7aa9ff;
-            margin-bottom: 8px;
-            text-shadow: 0 0 20px rgba(122, 169, 255, 0.5);
-        }
-
-        .stat-label {
-            font-size: 14px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #b0c7e9;
-        }
-
-        /* Секции */
-        section {
-            margin-bottom: 60px;
-            animation: fadeInUp 1s ease-out;
-        }
-
-        h2 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #d6e5ff;
-        }
-
-        h2 i {
-            color: #7aa9ff;
-            font-size: 26px;
-        }
-
-        /* Что такое нейросеть */
-        .definition-box {
-            background: rgba(20, 30, 50, 0.5);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(100, 180, 255, 0.2);
-            border-radius: 30px;
-            padding: 35px;
-        }
-
-        .example-block {
-            margin-top: 25px;
-            padding: 20px;
-            background: rgba(122, 169, 255, 0.08);
-            border-radius: 20px;
-            border-left: 4px solid #7aa9ff;
-        }
-
-        /* Эксперименты */
-        .experiments-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-        }
-
-        .exp-card {
-            background: rgba(20, 30, 50, 0.5);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(100, 180, 255, 0.2);
-            border-radius: 24px;
-            padding: 25px;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-            animation: fadeInUp 0.8s ease-out forwards;
-            opacity: 0;
-        }
-
-        .exp-card:nth-child(1) { animation-delay: 0.1s; }
-        .exp-card:nth-child(2) { animation-delay: 0.2s; }
-        .exp-card:nth-child(3) { animation-delay: 0.3s; }
-
-        .exp-card:hover {
-            transform: scale(1.02);
-            border-color: rgba(100, 180, 255, 0.5);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .exp-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .exp-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #7aa9ff, #3a6bc5);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            color: white;
-        }
-
-        .exp-title {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .exp-comparison {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-        }
-
-        .exp-before, .exp-after {
-            text-align: center;
-        }
-
-        .exp-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #8899bb;
-        }
-
-        .exp-time {
-            font-size: 28px;
-            font-weight: 800;
-        }
-
-        .exp-before .exp-time {
-            color: #ff7b7b;
-        }
-
-        .exp-after .exp-time {
-            color: #6fcf97;
-        }
-
-        .exp-save {
-            background: rgba(111, 207, 151, 0.15);
-            border-radius: 100px;
-            padding: 8px 16px;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #6fcf97;
-            border: 1px solid rgba(111, 207, 151, 0.3);
-        }
-
-        /* Таблица плюсов и минусов */
-        .pros-cons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-
-        .pros-box, .cons-box {
-            background: rgba(20, 30, 50, 0.5);
-            backdrop-filter: blur(15px);
-            border-radius: 24px;
-            padding: 30px;
-        }
-
-        .pros-box {
-            border-top: 4px solid #6fcf97;
-        }
-
-        .cons-box {
-            border-top: 4px solid #ff7b7b;
-        }
-
-        .pros-box h3, .cons-box h3 {
-            font-size: 22px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .pros-box ul, .cons-box ul {
-            list-style: none;
-        }
-
-        .pros-box li, .cons-box li {
-            padding: 10px 0;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .pros-box li i {
-            color: #6fcf97;
-            font-size: 18px;
-            margin-top: 3px;
-        }
-
-        .cons-box li i {
-            color: #ff7b7b;
-            font-size: 18px;
-            margin-top: 3px;
-        }
-
-        /* Фото-сравнение */
-        .photo-comparison {
-            display: flex;
-            gap: 20px;
-            margin: 20px 0 10px;
-        }
-
-        .photo-item {
-            flex: 1;
-            text-align: center;
-        }
-
-        .photo-badge {
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            color: #8899bb;
-        }
-
-        .photo-preview {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 16px;
-            padding: 15px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .photo-preview i {
-            font-size: 48px;
-            margin-bottom: 8px;
-        }
-
-        .photo-preview.old i {
-            color: #ff9f7b;
-        }
-
-        .photo-preview.ai i {
-            color: #6fcf97;
-        }
-
-        .photo-desc {
-            font-size: 13px;
-            margin-top: 8px;
-            color: #b0c7e9;
-        }
-
-        /* Вывод */
-        .conclusion-box {
-            background: linear-gradient(135deg, rgba(122, 169, 255, 0.1), rgba(58, 107, 197, 0.1));
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(122, 169, 255, 0.3);
-            border-radius: 30px;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .conclusion-box p {
-            font-size: 18px;
+        .greeting-text {
+            font-size: 1.5rem;
+            line-height: 1.45;
+            color: #3b2a1f;
             max-width: 800px;
             margin: 0 auto;
+            font-weight: 500;
         }
 
-        .highlight {
-            color: #7aa9ff;
+        .greeting-text strong {
+            color: #a5330e;
+            font-weight: 700;
+            font-size: 1.65rem;
+            display: inline-block;
+            background: rgba(255,241,184,0.7);
+            padding: 0.1rem 0.9rem;
+            border-radius: 60px;
+            margin-bottom: 6px;
+        }
+
+        .header {
+            background: linear-gradient(95deg, #2b4b6e, #1f3e5c);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid #ffb347;
+        }
+
+        .header h1 {
+            font-size: 2rem;
             font-weight: 700;
         }
 
-        /* Футер */
-        footer {
+        .content {
+            padding: 2rem;
+        }
+
+        /* Краткая информация */
+        .info-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .info-card {
+            background: #ffffff;
+            flex: 1;
+            min-width: 180px;
+            padding: 1rem;
+            border-radius: 28px;
+            box-shadow: 0 10px 20px -8px rgba(0,0,0,0.1);
             text-align: center;
-            padding: 40px 20px;
-            color: #8899bb;
-            font-size: 14px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            margin-top: 20px;
+            border: 1px solid #ffe0b5;
         }
 
-        /* Анимации */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .info-card h3 {
+            color: #c45b2c;
+            margin-bottom: 0.4rem;
         }
 
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* ПРОСМОТР PDF */
+        .pdf-viewer-block {
+            margin: 2rem 0;
+            text-align: center;
         }
 
-        /* Адаптация под мобильные */
-        @media (max-width: 900px) {
-            .experiments-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .pdf-viewer-block h2 {
+            font-size: 1.8rem;
+            color: #bc5a2c;
+            margin-bottom: 1rem;
+            font-weight: 700;
         }
 
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .experiments-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .pros-cons {
-                grid-template-columns: 1fr;
-            }
-            
-            h2 {
-                font-size: 24px;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-            
-            header {
-                padding: 40px 15px 30px;
-            }
-
-            .photo-comparison {
-                flex-direction: column;
-                gap: 15px;
-            }
+        .pdf-container {
+            background: #2c3e50;
+            border-radius: 24px;
+            padding: 1rem;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
 
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stat-number {
-                font-size: 36px;
-            }
+        .pdf-embed {
+            width: 100%;
+            height: 700px;
+            border-radius: 16px;
+            border: none;
+            background: white;
         }
 
-        /* Кастомный скроллбар */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .pdf-note {
+            margin-top: 0.8rem;
+            color: #6a4c2c;
+            font-size: 0.9rem;
         }
-        ::-webkit-scrollbar-track {
-            background: #0b0f1c;
+
+        /* Кнопка скачивания */
+        .download-area {
+            text-align: center;
+            margin: 2rem 0 1rem;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #2a3a5c;
-            border-radius: 4px;
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(100deg, #e76f51, #e05a36);
+            color: white;
+            text-decoration: none;
+            padding: 0.9rem 2.2rem;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: 0.2s;
+            animation: buttonPulse 2.2s infinite ease;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3a6bc5;
+
+        .btn-download:hover {
+            background: linear-gradient(100deg, #d45a38, #bc4a2a);
+            transform: scale(1.02);
+            animation: none;
+        }
+
+        .ticket-meta {
+            background: rgba(255,235,205,0.7);
+            border-radius: 28px;
+            padding: 0.8rem;
+            font-size: 0.85rem;
+            color: #6a4c2c;
+            margin-top: 1rem;
+        }
+
+        .extra-stuff {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 2rem;
+            background: #fff5e6;
+            padding: 1rem 1.5rem;
+            border-radius: 36px;
+            font-size: 0.85rem;
+        }
+
+        .footer {
+            background: #25485f;
+            text-align: center;
+            padding: 1.2rem;
+            font-size: 0.8rem;
+            color: #ffddb0;
+            border-top: 2px solid #ffb770;
+        }
+
+        @media (max-width: 750px) {
+            .greeting-text { font-size: 1.2rem; }
+            .header h1 { font-size: 1.3rem; }
+            .pdf-embed { height: 500px; }
         }
     </style>
 </head>
 <body>
-    <!-- Анимированные частицы фона -->
-    <div class="particles">
-        <div class="particle" style="width: 200px; height: 200px; top: 10%; left: 5%;"></div>
-        <div class="particle" style="width: 300px; height: 300px; top: 60%; right: 0%; animation-duration: 25s;"></div>
-        <div class="particle" style="width: 150px; height: 150px; bottom: 20%; left: 15%; animation-duration: 18s;"></div>
-        <div class="particle" style="width: 250px; height: 250px; top: 30%; right: 10%; animation-duration: 22s;"></div>
-        <div class="particle" style="width: 100px; height: 100px; bottom: 40%; right: 20%; animation-duration: 15s;"></div>
+<div class="container">
+    <!-- ПРИВЕТСТВИЕ -->
+    <div class="greeting-block">
+        <div class="greeting-text">
+            <strong>✨ Привет, дорогие бабушка и дедушка! ✨</strong><br>
+            Мы приглашаем вас погостить к нам в Видное. Ждём вас с нетерпением у нас на даче,<br>
+            чтобы замечательно провести лето 🌻
+        </div>
     </div>
 
-    <div class="container">
-        <!-- Шапка -->
-        <header>
-            <div class="badge">
-                <i class="fas fa-robot" style="margin-right: 8px;"></i> ПРОЕКТ • 2026
-            </div>
-            <h1>Нейросети меняют<br>нашу жизнь</h1>
-            <p class="subtitle">Практическое исследование влияния искусственного интеллекта на путешествия, творчество и повседневные задачи</p>
-        </header>
+    <div class="header">
+        <h1>🚂 Волгоград → Видное (Московская область)</h1>
+        <p>Июль 2026 · Железнодорожные билеты</p>
+    </div>
 
-        <!-- Ключевые цифры -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">92%</div>
-                <div class="stat-label">быстрее планирование</div>
+    <div class="content">
+        <!-- Краткая информация -->
+        <div class="info-cards">
+            <div class="info-card"><h3>👵👴 Пассажиры</h3><p>Людмила Васильевна<br>Валерий Михайлович</p></div>
+            <div class="info-card"><h3>🗓️ Отправление</h3><p><strong>01.07.2026 15:55</strong></p></div>
+            <div class="info-card"><h3>🚞 Поезд</h3><p>№002, вагон 09<br>места 021 и 023</p></div>
+        </div>
+
+        <!-- ПРОСМОТР PDF-ФАЙЛА (ТОТ САМЫЙ БИЛЕТ) -->
+        <div class="pdf-viewer-block">
+            <h2>🎫 Ваши электронные билеты</h2>
+            <div class="pdf-container">
+                <iframe src="/static/билеты.pdf#toolbar=1&navpanes=1" class="pdf-embed" title="Билеты на поезд">
+                    Ваш браузер не поддерживает просмотр PDF. <a href="/static/билеты.pdf">Скачайте билеты</a>
+                </iframe>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">86%</div>
-                <div class="stat-label">экономия в творчестве</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">95%</div>
-                <div class="stat-label">быстрее обработка фото</div>
+            <div class="pdf-note">
+                👆 Листайте страницы, приближайте — билеты полностью оригинальные
             </div>
         </div>
 
-        <!-- Что такое нейросеть -->
-        <section>
-            <h2><i class="fas fa-microchip"></i> Что такое нейросеть?</h2>
-            <div class="definition-box">
-                <p style="font-size: 18px; margin-bottom: 15px;"><strong>Нейросеть</strong> — это компьютерная программа, работающая по принципу человеческого мозга. Её главное отличие — способность <strong>обучаться</strong> на огромных массивах данных.</p>
-                <p>Программисты не прописывают ей жёсткие правила. Нейросети «показывают» миллионы примеров — текстов, картинок, звуков, — и она самостоятельно находит закономерности.</p>
-                <div class="example-block">
-                    <i class="fas fa-lightbulb" style="color: #ffd966; margin-right: 10px;"></i>
-                    <strong>Наглядный пример:</strong> Когда вы набираете сообщение на смартфоне, а клавиатура предлагает следующее слово или исправляет опечатку — это уже работает обученная нейросеть.
-                </div>
+        <!-- Кнопка скачивания (на случай, если захотят сохранить) -->
+        <div class="download-area">
+            <a href="/download/билеты.pdf" class="btn-download">📎 Скачать билеты (PDF)</a>
+            <div class="ticket-meta">
+                Заказ № 74566224904910 · Оформлен 24.05.2026<br>
+                Перевозчик: АО «ФПК» (ФПК Приволжский) · ИНН 7708709686<br>
+                Возврат онлайн возможен до 01.07.2026 15:55
             </div>
-        </section>
+        </div>
 
-        <!-- Практическая часть: эксперименты -->
-        <section>
-            <h2><i class="fas fa-flask"></i> Практическая часть • 3 эксперимента</h2>
-            <div class="experiments-grid">
-                <!-- Эксперимент 1: Путешествия по России -->
-                <div class="exp-card">
-                    <div class="exp-header">
-                        <div class="exp-icon"><i class="fas fa-map-location-dot"></i></div>
-                        <div class="exp-title">Путешествия</div>
-                    </div>
-                    <p style="margin-bottom: 15px; color: #b0c7e9;">Подбор 5 необычных мест для поездки по России на осенние каникулы</p>
-                    <div class="exp-comparison">
-                        <div class="exp-before">
-                            <div class="exp-label">Без нейросети</div>
-                            <div class="exp-time">90 мин</div>
-                        </div>
-                        <div style="align-self: center; color: #7aa9ff;">→</div>
-                        <div class="exp-after">
-                            <div class="exp-label">С YaGPT</div>
-                            <div class="exp-time">7 мин</div>
-                        </div>
-                    </div>
-                    <div style="text-align: center;">
-                        <span class="exp-save"><i class="fas fa-clock" style="margin-right: 6px;"></i>Экономия 83 минуты (92%)</span>
-                    </div>
-                    <p style="margin-top: 18px; font-size: 14px; color: #a0b8d4;"><i class="fas fa-check-circle" style="color: #6fcf97; margin-right: 6px;"></i>Маршрут: Териберка, Плато Путорана, Ленские столбы и др.</p>
-                </div>
-
-                <!-- Эксперимент 2: Творчество -->
-                <div class="exp-card">
-                    <div class="exp-header">
-                        <div class="exp-icon"><i class="fas fa-paint-brush"></i></div>
-                        <div class="exp-title">Творчество</div>
-                    </div>
-                    <p style="margin-bottom: 15px; color: #b0c7e9;">Создание уникальной открытки другу (без навыков рисования)</p>
-                    <div class="exp-comparison">
-                        <div class="exp-before">
-                            <div class="exp-label">Без нейросети</div>
-                            <div class="exp-time">35 мин</div>
-                        </div>
-                        <div style="align-self: center; color: #7aa9ff;">→</div>
-                        <div class="exp-after">
-                            <div class="exp-label">С Kandinsky</div>
-                            <div class="exp-time">5 мин</div>
-                        </div>
-                    </div>
-                    <div style="text-align: center;">
-                        <span class="exp-save"><i class="fas fa-clock" style="margin-right: 6px;"></i>Экономия 30 минут (86%)</span>
-                    </div>
-                    <p style="margin-top: 18px; font-size: 14px; color: #a0b8d4;"><i class="fas fa-check-circle" style="color: #6fcf97; margin-right: 6px;"></i>Абсолютно уникальное изображение</p>
-                </div>
-
-                <!-- Эксперимент 3: Фото с ИИ -->
-                <div class="exp-card">
-                    <div class="exp-header">
-                        <div class="exp-icon"><i class="fas fa-camera"></i></div>
-                        <div class="exp-title">Фотография</div>
-                    </div>
-                    <p style="margin-bottom: 10px; color: #b0c7e9;">Сравнение снимков: обычная камера и камера с ИИ-обработкой</p>
-                    
-                    <!-- Визуальное сравнение фото -->
-                    <div class="photo-comparison">
-                        <div class="photo-item">
-                            <div class="photo-badge">Обычная камера</div>
-                            <div class="photo-preview old">
-                                <i class="fas fa-image"></i>
-                                <div style="font-size: 13px; opacity: 0.8;">Шумы • Резкие тени</div>
-                            </div>
-                            <div class="photo-desc">Зернистость, тёмные участки</div>
-                        </div>
-                        <div class="photo-item">
-                            <div class="photo-badge">Камера с ИИ</div>
-                            <div class="photo-preview ai">
-                                <i class="fas fa-magic"></i>
-                                <div style="font-size: 13px; opacity: 0.8;">Гладкая • Яркая</div>
-                            </div>
-                            <div class="photo-desc">Мягкие тона, больше деталей</div>
-                        </div>
-                    </div>
-
-                    <div class="exp-comparison" style="margin-top: 15px;">
-                        <div class="exp-before">
-                            <div class="exp-label">Обработка вручную</div>
-                            <div class="exp-time">20 мин</div>
-                        </div>
-                        <div style="align-self: center; color: #7aa9ff;">→</div>
-                        <div class="exp-after">
-                            <div class="exp-label">ИИ за секунду</div>
-                            <div class="exp-time">1 мин</div>
-                        </div>
-                    </div>
-                    <div style="text-align: center;">
-                        <span class="exp-save"><i class="fas fa-clock" style="margin-right: 6px;"></i>Экономия 19 минут (95%)</span>
-                    </div>
-                    <p style="margin-top: 18px; font-size: 14px; color: #a0b8d4;"><i class="fas fa-check-circle" style="color: #6fcf97; margin-right: 6px;"></i>Фото становится мягче, ярче и приятнее глазу</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Плюсы и минусы -->
-        <section>
-            <h2><i class="fas fa-balance-scale"></i> Анализ преимуществ и недостатков</h2>
-            <div class="pros-cons">
-                <div class="pros-box">
-                    <h3><i class="fas fa-plus-circle" style="color: #6fcf97;"></i> Плюсы</h3>
-                    <ul>
-                        <li><i class="fas fa-check"></i> <strong>Экономия времени</strong> — задачи выполняются в 5–10 раз быстрее</li>
-                        <li><i class="fas fa-check"></i> <strong>Доступность знаний</strong> — сложные темы объясняются просто</li>
-                        <li><i class="fas fa-check"></i> <strong>Снятие творческих барьеров</strong> — рисовать может каждый</li>
-                        <li><i class="fas fa-check"></i> <strong>Улучшение фото</strong> — ИИ делает снимки качественнее</li>
-                    </ul>
-                </div>
-                <div class="cons-box">
-                    <h3><i class="fas fa-minus-circle" style="color: #ff7b7b;"></i> Минусы и риски</h3>
-                    <ul>
-                        <li><i class="fas fa-times"></i> <strong>Риск деградации навыков</strong> — можно разучиться делать самому</li>
-                        <li><i class="fas fa-times"></i> <strong>Вероятность ошибок</strong> — ИИ иногда «галлюцинирует»</li>
-                        <li><i class="fas fa-times"></i> <strong>Вопросы авторского права</strong> — кому принадлежит результат?</li>
-                        <li><i class="fas fa-times"></i> <strong>Технологическая зависимость</strong> — снижение критического мышления</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Вывод -->
-        <section>
-            <div class="conclusion-box">
-                <i class="fas fa-brain" style="font-size: 48px; color: #7aa9ff; margin-bottom: 20px;"></i>
-                <p style="font-size: 22px; font-weight: 600; margin-bottom: 20px;">Главный вывод</p>
-                <p>Нейросеть — это <span class="highlight">инструмент</span>, а не замена человеку.<br>Как калькулятор не отменяет знание математики, так и ИИ не отменяет умение думать своей головой.</p>
-                <p style="margin-top: 25px;">Эксперименты доказали: при грамотном использовании нейросети высвобождают самый ценный ресурс — <span class="highlight">время</span>. Задача нашего поколения — применять этот инструмент осознанно и всегда проверять информацию.</p>
-            </div>
-        </section>
-
-        <!-- Футер -->
-        <footer>
-            <p>© 2026 • Проект «Влияние нейросетей на жизнь современного человека»</p>
-            <p style="margin-top: 12px; opacity: 0.7;">Инструменты: YaGPT • Kandinsky • GigaChat</p>
-        </footer>
+        <div class="extra-stuff">
+            <span>🆔 Посадка по паспорту (оригинал!)</span>
+            <span>🧳 Багаж под полкой + багажное купе</span>
+            <span>🍽️ Питание: 1 рацион · Постельное бельё: 1 комплект</span>
+            <span>🚫 Провоз животных запрещён</span>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Сайт проекта загружен!');
-        });
-    </script>
+    <div class="footer">
+        Электронный билет — предъявление посадочного купона не требуется.<br>
+        Счастливого пути! Ждём вас в гости в Видном.
+    </div>
+</div>
 </body>
 </html>
