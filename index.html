@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Приглашение в Видное | Билеты на поезд</title>
+    <title>Приглашение в гости | Билеты на поезд</title>
     <style>
         * {
             margin: 0;
@@ -28,21 +28,6 @@
             100% {
                 opacity: 1;
                 transform: translateY(0) scale(1);
-            }
-        }
-
-        @keyframes buttonPulse {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 6px 14px rgba(231, 111, 81, 0.3);
-            }
-            50% {
-                transform: scale(1.03);
-                box-shadow: 0 12px 24px rgba(231, 111, 81, 0.5);
-            }
-            100% {
-                transform: scale(1);
-                box-shadow: 0 6px 14px rgba(231, 111, 81, 0.3);
             }
         }
 
@@ -253,42 +238,6 @@
             font-weight: 500;
         }
 
-        /* Кнопка скачивания PDF */
-        .download-area {
-            text-align: center;
-            margin: 2rem 0 1rem;
-        }
-
-        .btn-download {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            background: linear-gradient(100deg, #e76f51, #e05a36);
-            color: white;
-            text-decoration: none;
-            padding: 0.9rem 2.2rem;
-            border-radius: 60px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            transition: 0.2s;
-            animation: buttonPulse 2.2s infinite ease;
-        }
-
-        .btn-download:hover {
-            background: linear-gradient(100deg, #d45a38, #bc4a2a);
-            transform: scale(1.02);
-            animation: none;
-        }
-
-        .ticket-meta {
-            background: rgba(255,235,205,0.7);
-            border-radius: 28px;
-            padding: 0.8rem;
-            font-size: 0.85rem;
-            color: #6a4c2c;
-            margin-top: 1rem;
-        }
-
         .extra-stuff {
             display: flex;
             flex-wrap: wrap;
@@ -319,17 +268,17 @@
 </head>
 <body>
 <div class="container">
-    <!-- ПРИВЕТСТВИЕ -->
+    <!-- ПРИВЕТСТВИЕ (без слова "Видное") -->
     <div class="greeting-block">
         <div class="greeting-text">
             <strong>✨ Привет, дорогие бабушка и дедушка! ✨</strong><br>
-            Мы приглашаем вас погостить к нам в Видное. Ждём вас с нетерпением у нас на даче,<br>
+            Мы приглашаем вас погостить к нам. Ждём вас с нетерпением у нас на даче,<br>
             чтобы замечательно провести лето 🌻
         </div>
     </div>
 
     <div class="header">
-        <h1>🚂 Волгоград → Видное (Московская область)</h1>
+        <h1>🚂 Волгоград → В гости (Московская область)</h1>
         <p>Июль 2026 · Тёплый поезд, нижние полки, полный комфорт</p>
     </div>
 
@@ -343,16 +292,16 @@
         </div>
 
         <div class="route-card">
-            🛤️ <strong>Маршрут:</strong> Поезд до Москвы → 15 минут на такси / электричке → Видное, наша дача.<br>
+            🛤️ <strong>Маршрут:</strong> Поезд до Москвы → 15 минут на такси / электричке → наша дача.<br>
             Время в пути: 17 ч 35 мин · 1 ночь с постельным бельём и питанием.
         </div>
 
         <!-- БИЛЕТЫ, ВСТАВЛЕННЫЕ ИЗ ФАЙЛА -->
         <div class="tickets-section">
-            <h2>🎫 Ваши электронные билеты (оригинальные данные)</h2>
+            <h2>🎫 Ваши электронные билеты</h2>
             <div class="tickets-container">
                 
-                <!-- БИЛЕТ №1: ЛЮДМИЛА ВАСИЛЬЕВНА (страница 1 PDF) -->
+                <!-- БИЛЕТ №1: ЛЮДМИЛА ВАСИЛЬЕВНА -->
                 <div class="ticket">
                     <div class="ticket-header">
                         🚆 ЭЛЕКТРОННЫЙ БИЛЕТ / ПАССАЖИР 🚆
@@ -378,7 +327,7 @@
                     </div>
                 </div>
 
-                <!-- БИЛЕТ №2: ВАЛЕРИЙ МИХАЙЛОВИЧ (страница 2 PDF) -->
+                <!-- БИЛЕТ №2: ВАЛЕРИЙ МИХАЙЛОВИЧ -->
                 <div class="ticket">
                     <div class="ticket-header">
                         🚆 ЭЛЕКТРОННЫЙ БИЛЕТ / ПАССАЖИР 🚆
@@ -403,15 +352,6 @@
                         Запрещён провоз животных • Нумерация вагонов с хвоста поезда
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- КНОПКА СКАЧИВАНИЯ ФАЙЛА (если нужен оригинал PDF) -->
-        <div class="download-area">
-            <a href="/download/билеты.pdf" class="btn-download">📎 Скачать оригинал билетов (PDF)</a>
-            <div class="ticket-meta">
-                Перевозчик: АО «ФПК» (ФПК Приволжский) ИНН 7708709686<br>
-                Электронный билет действителен при предъявлении паспорта. Посадочный купон не требуется.
             </div>
         </div>
 
