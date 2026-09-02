@@ -1,637 +1,497 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AlphaGo · доклад + реализация</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Монте-Карло · интерактив</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            background: #f6f7f9;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #1e1e2a;
-            line-height: 1.5;
-            padding: 2rem 1rem;
-        }
+    body {
+      background: #f2f4f8;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(2px);
-            border-radius: 2.5rem;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08), 0 4px 18px rgba(0, 0, 0, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-        }
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(4px);
+      border-radius: 3rem;
+      padding: 2.2rem 2rem 2rem 2rem;
+      box-shadow: 0 25px 45px -18px rgba(0, 0, 0, 0.12), 0 2px 12px rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: box-shadow 0.2s;
+    }
 
-        .title-block {
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #ecedf2;
-            padding-bottom: 1.5rem;
-        }
+    /* шапка минимальная */
+    .header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      margin-bottom: 1.8rem;
+    }
 
-        h1 {
-            font-weight: 500;
-            font-size: 2.6rem;
-            letter-spacing: -0.02em;
-            background: linear-gradient(145deg, #1e1e2a 0%, #3b3b4f 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.3rem;
-        }
+    .header h2 {
+      font-weight: 500;
+      font-size: 1.9rem;
+      letter-spacing: -0.02em;
+      color: #1c1c2a;
+      background: linear-gradient(145deg, #1c1c2a, #3b3b52);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-        .subhead {
-            font-size: 1rem;
-            color: #5e5e72;
-            font-weight: 400;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
+    .header .sub {
+      font-size: 0.9rem;
+      color: #5b5b72;
+      background: #eaeef6;
+      padding: 0.2rem 1rem;
+      border-radius: 40px;
+      font-weight: 450;
+      -webkit-text-fill-color: #3b3b4e;
+      border: 1px solid #d5dbe8;
+    }
 
-        .subhead span {
-            background: #eaeef5;
-            padding: 0.2rem 0.8rem;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #2b2b3a;
-            -webkit-text-fill-color: #2b2b3a;
-            background: #eaeef5;
-        }
+    /* основная сетка симуляции */
+    .sim-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
 
-        .section {
-            margin-bottom: 2.4rem;
-            opacity: 0;
-            transform: translateY(18px);
-            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+    /* дерево + статистика */
+    .tree-panel {
+      background: #f6f8fc;
+      border-radius: 2.2rem;
+      padding: 1.5rem 1.8rem;
+      border: 1px solid #e2e7f0;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+    }
 
-        .section:nth-child(2) { animation-delay: 0.05s; }
-        .section:nth-child(3) { animation-delay: 0.10s; }
-        .section:nth-child(4) { animation-delay: 0.15s; }
-        .section:nth-child(5) { animation-delay: 0.20s; }
-        .section:nth-child(6) { animation-delay: 0.25s; }
-        .section:nth-child(7) { animation-delay: 0.30s; }
+    .tree-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.2rem 2rem;
+    }
 
-        @keyframes fadeUp {
-            0% { opacity: 0; transform: translateY(18px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+    .node-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem 0.7rem;
+      flex-wrap: wrap;
+    }
 
-        .section-title {
-            font-weight: 500;
-            font-size: 1.3rem;
-            letter-spacing: -0.01em;
-            color: #1e1e2a;
-            margin-bottom: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
+    .node-group .label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #5e5e78;
+      background: #eef1f8;
+      padding: 0.15rem 0.7rem;
+      border-radius: 40px;
+      border: 1px solid #d4dae7;
+    }
 
-        .section-title .badge {
-            background: #d9dee8;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            padding: 0.15rem 0.7rem;
-            color: #2f2f40;
-            letter-spacing: 0.02em;
-        }
+    .node {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.6rem;
+      height: 2.6rem;
+      padding: 0 0.6rem;
+      border-radius: 3rem;
+      background: white;
+      border: 1.5px solid #cbd2e2;
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: #1e1e2f;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      transition: 0.15s;
+      font-variant-numeric: tabular-nums;
+    }
 
-        .section p, .section li {
-            color: #2c2c3e;
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-        }
+    .node.policy {
+      border-color: #8191b3;
+      background: #e9edf7;
+    }
+    .node.value {
+      border-color: #a392bb;
+      background: #f1edf8;
+    }
+    .node.mcts {
+      border-color: #7daea1;
+      background: #e3f0ec;
+    }
+    .node.highlight {
+      transform: scale(1.06);
+      border-width: 2.8px;
+      border-color: #1f1f3a;
+      background: #dfe4f2;
+      box-shadow: 0 6px 12px -6px rgba(0,0,0,0.08);
+    }
 
-        .section ul {
-            padding-left: 1.4rem;
-            margin-top: 0.2rem;
-            list-style: none;
-        }
+    .stat-badge {
+      font-size: 0.8rem;
+      background: #eef1f8;
+      padding: 0.2rem 1rem;
+      border-radius: 40px;
+      color: #2b2b40;
+      border: 1px solid #d5dbe8;
+      white-space: nowrap;
+    }
 
-        .section ul li {
-            position: relative;
-            padding-left: 1.2rem;
-            margin-bottom: 0.4rem;
-        }
+    .stat-badge strong {
+      font-weight: 600;
+    }
 
-        .section ul li::before {
-            content: "·";
-            position: absolute;
-            left: 0;
-            color: #7a7a92;
-            font-weight: 500;
-        }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.8rem 1.2rem;
+      margin-top: 1rem;
+    }
 
-        .highlight-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 0.7rem;
-        }
+    .btn {
+      background: white;
+      border: 1px solid #ced5e3;
+      padding: 0.4rem 1.5rem;
+      border-radius: 3rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #1f1f30;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.01);
+      font-family: inherit;
+    }
 
-        .highlight-card {
-            background: #f0f2f7;
-            padding: 0.8rem 1.2rem;
-            border-radius: 2rem;
-            font-size: 0.9rem;
-            border: 1px solid #e4e7ef;
-            transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
-            flex: 1 0 auto;
-        }
+    .btn:hover {
+      background: #e9edf6;
+      border-color: #aab3ca;
+      transform: translateY(-1px);
+    }
 
-        .highlight-card strong {
-            font-weight: 600;
-            color: #1a1a2a;
-        }
+    .btn-primary {
+      background: #1a1a2a;
+      border-color: #1a1a2a;
+      color: white;
+    }
 
-        .stat-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem 1.8rem;
-            background: #f0f2f7;
-            padding: 0.8rem 1.6rem;
-            border-radius: 3rem;
-            margin: 0.5rem 0 0.2rem 0;
-            border: 1px solid #e4e7ef;
-        }
+    .btn-primary:hover {
+      background: #2d2d44;
+      border-color: #2d2d44;
+    }
 
-        .stat-item {
-            font-size: 0.95rem;
-        }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #ced5e3;
+    }
 
-        .stat-item .num {
-            font-weight: 600;
-            color: #14141f;
-            margin-right: 0.2rem;
-        }
+    .log-box {
+      background: #ffffffd9;
+      border-radius: 1.8rem;
+      padding: 0.7rem 1.4rem;
+      font-size: 0.92rem;
+      border: 1px solid #dce1ed;
+      margin-top: 0.8rem;
+      color: #1c1c2e;
+      backdrop-filter: blur(2px);
+      min-height: 3.2rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.2rem 0.6rem;
+    }
 
-        .divider {
-            height: 1px;
-            background: #ecedf2;
-            margin: 2rem 0 1.8rem 0;
-        }
+    .log-box .tag {
+      display: inline-block;
+      background: #dde3f0;
+      padding: 0.1rem 0.6rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 550;
+      color: #2a2a42;
+    }
 
-        .footnote {
-            font-size: 0.85rem;
-            color: #5a5a70;
-            border-top: 1px solid #ecedf2;
-            padding-top: 1.6rem;
-            margin-top: 1.8rem;
-            text-align: center;
-        }
+    .progress-hint {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.3rem 1rem;
+      font-size: 0.8rem;
+      color: #4f4f68;
+      margin-top: 0.2rem;
+    }
 
-        /* ----- РЕАЛИЗАЦИЯ (интерактивный блок) ----- */
-        .sim-block {
-            background: #f0f2f7;
-            border-radius: 2rem;
-            padding: 1.5rem 1.8rem;
-            border: 1px solid #e4e7ef;
-            margin: 1.2rem 0 0.4rem 0;
-        }
+    .progress-hint .dot {
+      display: inline-block;
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 20px;
+      background: #a0acc4;
+      margin-right: 0.2rem;
+    }
 
-        .sim-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1.2rem 2rem;
-        }
+    .progress-hint .dot.pol { background: #7d8db3; }
+    .progress-hint .dot.val { background: #a392bb; }
+    .progress-hint .dot.mc { background: #7daea1; }
 
-        .sim-visual {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            flex-wrap: wrap;
-        }
+    @media (max-width: 650px) {
+      .container { padding: 1.5rem 1rem; border-radius: 2rem; }
+      .header h2 { font-size: 1.5rem; }
+      .tree-panel { padding: 1rem 1rem; }
+      .node { min-width: 2.2rem; height: 2.2rem; font-size: 0.75rem; }
+      .controls { gap: 0.5rem; }
+      .btn { padding: 0.3rem 1rem; font-size: 0.8rem; }
+    }
 
-        .node {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2.8rem;
-            height: 2.8rem;
-            border-radius: 40px;
-            background: #ffffff;
-            border: 1.5px solid #c8cedb;
-            font-weight: 500;
-            font-size: 0.85rem;
-            color: #1e1e2a;
-            transition: 0.15s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        .node.policy {
-            border-color: #7d8db3;
-            background: #e8ecf5;
-        }
-
-        .node.value {
-            border-color: #9a8bb5;
-            background: #f0ebf7;
-        }
-
-        .node.mcts {
-            border-color: #80a89e;
-            background: #e2f0ec;
-        }
-
-        .node.highlight {
-            transform: scale(1.05);
-            border-width: 2.5px;
-            border-color: #2b2b4a;
-            background: #e2e6f5;
-        }
-
-        .sim-label {
-            font-size: 0.85rem;
-            color: #3f3f57;
-            background: #ffffffcc;
-            padding: 0.2rem 0.8rem;
-            border-radius: 40px;
-            border: 1px solid #d3d8e5;
-            backdrop-filter: blur(2px);
-        }
-
-        .sim-controls {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.8rem 1.2rem;
-            margin-top: 0.8rem;
-        }
-
-        .btn {
-            background: #ffffff;
-            border: 1px solid #cdd3e0;
-            padding: 0.4rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #1f1f30;
-            cursor: pointer;
-            transition: 0.15s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            font-family: 'Inter', sans-serif;
-        }
-
-        .btn:hover {
-            background: #e8ecf5;
-            border-color: #a8b2c9;
-            transform: translateY(-1px);
-        }
-
-        .btn-primary {
-            background: #1e1e2a;
-            border-color: #1e1e2a;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2e2e42;
-            border-color: #2e2e42;
-        }
-
-        .log-box {
-            background: #ffffffd9;
-            border-radius: 1.2rem;
-            padding: 0.7rem 1.2rem;
-            font-size: 0.9rem;
-            border: 1px solid #d9dee8;
-            min-height: 3rem;
-            margin-top: 0.8rem;
-            color: #1f1f30;
-            font-weight: 400;
-            backdrop-filter: blur(2px);
-        }
-
-        .log-box span {
-            display: inline-block;
-        }
-
-        .tag {
-            display: inline-block;
-            background: #d9dee8;
-            padding: 0.1rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            margin-right: 0.3rem;
-        }
-
-        @media (max-width: 600px) {
-            .container { padding: 1.6rem 1.2rem; }
-            h1 { font-size: 2rem; }
-            .stat-row { flex-direction: column; gap: 0.2rem; padding: 0.8rem 1.2rem; }
-            .highlight-card { flex: 1 1 100%; }
-            .node { width: 2.2rem; height: 2.2rem; font-size: 0.7rem; }
-            .sim-block { padding: 1rem; }
-        }
-
-        .kw {
-            background: #e5e9f2;
-            padding: 0.1rem 0.4rem;
-            border-radius: 12px;
-            font-weight: 450;
-            color: #1f1f30;
-        }
-
-        .hover-lift {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
-        }
-    </style>
+    /* анимация появления */
+    .container {
+      opacity: 0;
+      animation: fadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeUp {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
 <div class="container">
+  <div class="header">
+    <h2>⏺ Монте-Карло · дерево поиска</h2>
+    <span class="sub">MCTS · симуляция</span>
+  </div>
 
-    <div class="title-block">
-        <h1>AlphaGo · Как машина обыграла чемпионов</h1>
-        <div class="subhead">
-            <span>доклад ~ 5 мин</span>
-            <span>2016 – 2017</span>
-            <span>DeepMind</span>
-            <span>реализация</span>
+  <!-- основная панель -->
+  <div class="sim-grid">
+    <div class="tree-panel">
+
+      <!-- визуализация дерева: Policy / Value / MCTS -->
+      <div class="tree-row">
+        <div class="node-group">
+          <span class="label">Policy</span>
+          <span class="node policy" id="p1">0.62</span>
+          <span class="node policy" id="p2">0.28</span>
+          <span class="node policy" id="p3">0.10</span>
         </div>
+        <div class="node-group">
+          <span class="label">Value</span>
+          <span class="node value" id="v1">+0.7</span>
+        </div>
+        <div class="node-group">
+          <span class="label">MCTS</span>
+          <span class="node mcts" id="m1">3</span>
+          <span class="node mcts" id="m2">1</span>
+          <span class="node mcts" id="m3">0</span>
+        </div>
+        <span class="stat-badge" id="stepCounter">Шаг 0</span>
+      </div>
+
+      <!-- управление -->
+      <div class="controls">
+        <button class="btn btn-primary" id="stepBtn">▶ Шаг MCTS</button>
+        <button class="btn btn-outline" id="resetBtn">⟲ Сброс</button>
+        <button class="btn" id="autoBtn">⏵ Авто (3x)</button>
+        <span style="font-size:0.8rem; color:#5b5b74; margin-left:auto;" id="simCount">посещений: 0</span>
+      </div>
+
+      <!-- лог / пояснение -->
+      <div class="log-box" id="logBox">
+        <span class="tag">MCTS</span> Нажмите «Шаг» — алгоритм выберет ход по статистике
+      </div>
+
+      <!-- подсказка цветов -->
+      <div class="progress-hint">
+        <span><span class="dot pol"></span> Policy — вероятность хода</span>
+        <span><span class="dot val"></span> Value — оценка позиции</span>
+        <span><span class="dot mc"></span> MCTS — кол-во посещений</span>
+        <span style="margin-left:auto; opacity:0.7;">выделен выбранный ход</span>
+      </div>
     </div>
 
-    <!-- 1. Вступление -->
-    <div class="section">
-        <div class="section-title">
-            <span>01</span> Вступление
-        </div>
-        <p>
-            В 2016 году нейросеть <strong>AlphaGo</strong> от Google DeepMind обыграла легенду го Ли Седоля 
-            со счётом <strong>4:1</strong> — единственный человек, выигравший хотя бы одну партию у этой версии. 
-            А уже в 2017 году обновлённая AlphaGo Master разгромила первого номера мирового рейтинга Кэ Цзе 
-            со счётом <strong>3:0</strong>. После этого DeepMind завершила карьеру игрока: людей-соперников 
-            для AlphaGo не осталось.
-        </p>
-        <p style="margin-top: 0.3rem;">
-            Но самое поразительное — версия <strong>AlphaGo Zero</strong>. Её не учили на человеческих партиях: 
-            она просто знала правила и играла сама с собой. Через <strong>3 дня</strong> самообучения 
-            Zero обыграла предыдущую версию, победившую Ли Седоля, со счётом <strong>100:0</strong>.
-        </p>
+    <!-- мини-схема алгоритма -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; background: #f6f8fc; border-radius: 2rem; padding: 0.6rem 1.4rem; border: 1px solid #e2e7f0;">
+      <span style="font-weight: 450; color:#2b2b40;">1. Выбор</span>
+      <span style="color:#5b5b74;">→</span>
+      <span style="font-weight: 450; color:#2b2b40;">2. Расширение</span>
+      <span style="color:#5b5b74;">→</span>
+      <span style="font-weight: 450; color:#2b2b40;">3. Симуляция</span>
+      <span style="color:#5b5b74;">→</span>
+      <span style="font-weight: 450; color:#2b2b40;">4. Обратное распространение</span>
     </div>
-
-    <!-- 2. Алгоритм -->
-    <div class="section">
-        <div class="section-title">
-            <span>02</span> Как работал алгоритм?
-            <span class="badge">комбинация</span>
-        </div>
-        <p>В основе AlphaGo — три ключевых компонента:</p>
-        <ul>
-            <li><strong>Политика (policy network)</strong> — предсказывает вероятный ход профессионала. Обучалась на 30 млн ходов из 160 тыс. партий сильных игроков.</li>
-            <li><strong>Ценностная сеть (value network)</strong> — оценивает позицию на доске, предсказывая победителя без полного перебора.</li>
-            <li><strong>Метод Монте-Карло (MCTS)</strong> — древовидный поиск с симуляциями: «проигрывает» партии в уме и выбирает ход, который чаще приводил к победе.</li>
-        </ul>
-        <div class="highlight-grid">
-            <div class="highlight-card hover-lift"><strong>Policy</strong> · сужает выбор ходов</div>
-            <div class="highlight-card hover-lift"><strong>Value</strong> · оценивает позицию</div>
-            <div class="highlight-card hover-lift"><strong>MCTS</strong> · направленный поиск</div>
-        </div>
-    </div>
-
-    <!-- 3. Методы обучения -->
-    <div class="section">
-        <div class="section-title">
-            <span>03</span> Обучение: от учителя к самоигре
-        </div>
-        <div class="stat-row">
-            <span class="stat-item"><span class="num">1.</span> Обучение с учителем (Supervised) — предсказание ходов людей.</span>
-            <span class="stat-item"><span class="num">2.</span> Обучение с подкреплением (Reinforcement) — игра с самим собой, постоянное улучшение.</span>
-        </div>
-        <p style="margin-top: 0.6rem;">
-            Сначала AlphaGo копировала стиль профессионалов, а затем, благодаря самоигре, находила стратегии, 
-            неизвестные людям.
-        </p>
-    </div>
-
-    <!-- 4. Классификация + эволюция (объединено) -->
-    <div class="section">
-        <div class="section-title">
-            <span>04</span> Классификация & эволюция
-        </div>
-        <p>
-            AlphaGo — пример <strong>«слабого» (узкого) ИИ</strong>. Она решает одну задачу, но технологии (глубокое обучение, RL, MCTS) применяются везде: от сворачивания белков до беспилотников.
-        </p>
-        <div class="highlight-grid" style="margin-top: 0.3rem;">
-            <div class="highlight-card hover-lift"><strong>AlphaGo</strong> · данные людей + RL</div>
-            <div class="highlight-card hover-lift"><strong>AlphaZero</strong> · только RL, без человеческих партий</div>
-            <div class="highlight-card hover-lift"><strong>MuZero</strong> · учится без правил, строит модель</div>
-        </div>
-    </div>
-
-    <!-- 5. РЕАЛИЗАЦИЯ – интерактивный блок -->
-    <div class="section">
-        <div class="section-title">
-            <span>05</span> Реализация · как это работает
-            <span class="badge">интерактив</span>
-        </div>
-        <p style="margin-bottom: 0.8rem;">
-            Ниже — симуляция шага поиска MCTS с участием Policy и Value. Нажмите <strong>«Сделать шаг»</strong>, чтобы увидеть, как сеть выбирает ход.
-        </p>
-
-        <div class="sim-block">
-            <div class="sim-row">
-                <div class="sim-visual">
-                    <span class="sim-label">Policy</span>
-                    <span class="node policy" id="nodePolicy">0.62</span>
-                    <span class="node policy" id="nodePolicy2">0.28</span>
-                    <span class="node policy" id="nodePolicy3">0.10</span>
-                </div>
-                <div class="sim-visual">
-                    <span class="sim-label">Value</span>
-                    <span class="node value" id="nodeValue">+0.7</span>
-                </div>
-                <div class="sim-visual">
-                    <span class="sim-label">MCTS</span>
-                    <span class="node mcts" id="nodeMcts">3</span>
-                    <span class="node mcts" id="nodeMcts2">1</span>
-                    <span class="node mcts" id="nodeMcts3">0</span>
-                </div>
-            </div>
-
-            <div class="sim-controls">
-                <button class="btn btn-primary" id="stepBtn">▶ Сделать шаг</button>
-                <button class="btn" id="resetBtn">⟲ Сброс</button>
-                <span style="font-size:0.85rem; color:#4a4a62;" id="stepCounter">Шаг 0</span>
-            </div>
-
-            <div class="log-box" id="logBox">
-                <span>▶ Нажмите «Сделать шаг», чтобы запустить симуляцию AlphaGo</span>
-            </div>
-            <div style="margin-top: 0.5rem; font-size:0.8rem; color:#5a5a72; display:flex; gap: 0.8rem; flex-wrap:wrap;">
-                <span><span class="tag">policy</span> вероятность хода</span>
-                <span><span class="tag">value</span> оценка позиции</span>
-                <span><span class="tag">mcts</span> посещения в дереве</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 6. Заключение -->
-    <div class="section">
-        <div class="section-title">
-            <span>06</span> Заключение
-        </div>
-        <p>
-            История AlphaGo — это пример того, как глубокие нейросети и самообучение решают задачи, считавшиеся почти неразрешимыми. 
-            И хотя это пока «узкий» ИИ, эти технологии уже сегодня меняют мир.
-        </p>
-        <div style="margin-top: 0.8rem; display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem;">
-            <span class="kw">глубокое обучение</span>
-            <span class="kw">обучение с подкреплением</span>
-            <span class="kw">поиск по дереву</span>
-            <span class="kw">самообучение</span>
-        </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.8rem; background: #f0f2f7; padding: 0.8rem 1.4rem; border-radius: 3rem; border: 1px solid #e4e7ef;">
-        <span style="font-weight: 450;">2016</span>
-        <span style="color: #3b3b50;">AlphaGo vs Ли Седоль 4:1</span>
-        <span style="font-weight: 450;">2017</span>
-        <span style="color: #3b3b50;">AlphaGo Master vs Кэ Цзе 3:0</span>
-        <span style="font-weight: 450;">2017</span>
-        <span style="color: #3b3b50;">AlphaGo Zero · 3 дня → 100:0</span>
-    </div>
-
-    <div class="footnote">
-        Доклад по материалам истории AlphaGo · реализация: симуляция MCTS + Policy/Value
-    </div>
-
+  </div>
 </div>
 
 <script>
-    (function() {
-        // состояние симуляции
-        let step = 0;
-        const logBox = document.getElementById('logBox');
-        const stepCounter = document.getElementById('stepCounter');
+  (function() {
+    // состояние
+    let step = 0;
+    let totalVisits = 0;
 
-        // элементы узлов
-        const nodePolicy = document.getElementById('nodePolicy');
-        const nodePolicy2 = document.getElementById('nodePolicy2');
-        const nodePolicy3 = document.getElementById('nodePolicy3');
-        const nodeValue = document.getElementById('nodeValue');
-        const nodeMcts = document.getElementById('nodeMcts');
-        const nodeMcts2 = document.getElementById('nodeMcts2');
-        const nodeMcts3 = document.getElementById('nodeMcts3');
+    // элементы
+    const p1El = document.getElementById('p1');
+    const p2El = document.getElementById('p2');
+    const p3El = document.getElementById('p3');
+    const vEl = document.getElementById('v1');
+    const m1El = document.getElementById('m1');
+    const m2El = document.getElementById('m2');
+    const m3El = document.getElementById('m3');
+    const logBox = document.getElementById('logBox');
+    const stepCounter = document.getElementById('stepCounter');
+    const simCount = document.getElementById('simCount');
 
-        // начальные значения
-        let p1 = 0.62, p2 = 0.28, p3 = 0.10;
-        let v = 0.7;
-        let m1 = 3, m2 = 1, m3 = 0;
+    // значения
+    let p1 = 0.62, p2 = 0.28, p3 = 0.10;
+    let val = 0.7;
+    let m1 = 3, m2 = 1, m3 = 0;
 
-        function updateDisplay() {
-            nodePolicy.textContent = p1.toFixed(2);
-            nodePolicy2.textContent = p2.toFixed(2);
-            nodePolicy3.textContent = p3.toFixed(2);
-            nodeValue.textContent = (v >= 0 ? '+' : '') + v.toFixed(1);
-            nodeMcts.textContent = m1;
-            nodeMcts2.textContent = m2;
-            nodeMcts3.textContent = m3;
-            stepCounter.textContent = 'Шаг ' + step;
+    function updateDisplay() {
+      p1El.textContent = p1.toFixed(2);
+      p2El.textContent = p2.toFixed(2);
+      p3El.textContent = p3.toFixed(2);
+      vEl.textContent = (val >= 0 ? '+' : '') + val.toFixed(1);
+      m1El.textContent = m1;
+      m2El.textContent = m2;
+      m3El.textContent = m3;
+      stepCounter.textContent = 'Шаг ' + step;
+      simCount.textContent = 'посещений: ' + (m1 + m2 + m3);
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('.node').forEach(n => n.classList.remove('highlight'));
+    }
+
+    function highlightNode(...els) {
+      els.forEach(el => el.classList.add('highlight'));
+    }
+
+    function resetSim() {
+      step = 0;
+      p1 = 0.62; p2 = 0.28; p3 = 0.10;
+      val = 0.7;
+      m1 = 3; m2 = 1; m3 = 0;
+      clearHighlights();
+      updateDisplay();
+      logBox.innerHTML = `<span class="tag">MCTS</span> Сброс. Нажмите «Шаг» для симуляции.`;
+    }
+
+    // один шаг MCTS
+    function stepMCTS() {
+      step++;
+
+      // 1. Policy слегка изменяется (имитация обучения)
+      const d1 = (Math.random() - 0.5) * 0.14;
+      const d2 = (Math.random() - 0.5) * 0.12;
+      let np1 = Math.min(0.85, Math.max(0.05, p1 + d1));
+      let np2 = Math.min(0.85, Math.max(0.05, p2 + d2));
+      let np3 = 1 - np1 - np2;
+      if (np3 < 0.05) { np3 = 0.05; np1 = 1 - np2 - np3; }
+      if (np3 > 0.85) { np3 = 0.85; np1 = 1 - np2 - np3; }
+      p1 = np1; p2 = np2; p3 = np3;
+
+      // 2. Value — случайное блуждание
+      val = val + (Math.random() - 0.5) * 0.35;
+      val = Math.min(1.0, Math.max(-1.0, val));
+
+      // 3. MCTS: выбираем ход по комбинации policy * (value + смещение)
+      const offset = 0.4;
+      const scores = [
+        p1 * (val + offset),
+        p2 * (val + offset * 0.7),
+        p3 * (val - offset * 0.3)
+      ];
+      let maxIdx = 0;
+      for (let i = 1; i < 3; i++) {
+        if (scores[i] > scores[maxIdx]) maxIdx = i;
+      }
+
+      // увеличиваем посещения для выбранного и немного для других (имитация)
+      if (maxIdx === 0) m1 += 1 + Math.floor(Math.random() * 3);
+      else if (maxIdx === 1) m2 += 1 + Math.floor(Math.random() * 3);
+      else m3 += 1 + Math.floor(Math.random() * 3);
+
+      // случайные "разведывательные" посещения
+      if (Math.random() > 0.55) m1 += 1;
+      if (Math.random() > 0.65) m2 += 1;
+      if (Math.random() > 0.75) m3 += 1;
+
+      // выделение
+      clearHighlights();
+      const pNodes = [p1El, p2El, p3El];
+      const mNodes = [m1El, m2El, m3El];
+      highlightNode(pNodes[maxIdx], mNodes[maxIdx], vEl);
+      // также подсветим policy и mcts для выбранного
+      updateDisplay();
+
+      // лог
+      const choice = ['ход A', 'ход B', 'ход C'][maxIdx];
+      const visits = [m1, m2, m3];
+      logBox.innerHTML = `
+        <span class="tag">MCTS</span>
+        Шаг ${step}: выбран <strong>${choice}</strong> 
+        (посещений: ${visits[maxIdx]}, policy: ${(p1*100).toFixed(0)}% / ${(p2*100).toFixed(0)}% / ${(p3*100).toFixed(0)}%)
+        <span style="opacity:0.6; margin-left:0.4rem;">· value ${val.toFixed(1)}</span>
+      `;
+    }
+
+    // авто-режим (несколько шагов)
+    let autoTimer = null;
+    function runAuto(steps = 3) {
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+      }
+      let count = 0;
+      autoTimer = setInterval(() => {
+        if (count >= steps) {
+          clearInterval(autoTimer);
+          autoTimer = null;
+          return;
         }
+        stepMCTS();
+        count++;
+      }, 450);
+    }
 
-        function resetSim() {
-            step = 0;
-            p1 = 0.62; p2 = 0.28; p3 = 0.10;
-            v = 0.7;
-            m1 = 3; m2 = 1; m3 = 0;
-            // снимаем выделение
-            document.querySelectorAll('.node').forEach(n => n.classList.remove('highlight'));
-            updateDisplay();
-            logBox.innerHTML = '<span>⟲ Сброс. Нажмите «Сделать шаг».</span>';
-        }
+    // кнопки
+    document.getElementById('stepBtn').addEventListener('click', () => {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      stepMCTS();
+    });
 
-        // логика одного шага
-        function stepSim() {
-            step++;
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      resetSim();
+    });
 
-            // эмулируем обновление: policy немного меняется, value колеблется, mcts обновляется
-            // случайные дельты для реализма
-            const deltaP = (Math.random() - 0.5) * 0.12;
-            const deltaP2 = (Math.random() - 0.5) * 0.10;
-            // пересчитываем p3 как остаток
-            let newP1 = Math.min(0.85, Math.max(0.05, p1 + deltaP));
-            let newP2 = Math.min(0.85, Math.max(0.05, p2 + deltaP2));
-            let newP3 = 1 - newP1 - newP2;
-            if (newP3 < 0.05) { newP3 = 0.05; newP1 = 1 - newP2 - newP3; }
-            if (newP3 > 0.85) { newP3 = 0.85; newP1 = 1 - newP2 - newP3; }
-            p1 = newP1; p2 = newP2; p3 = newP3;
+    document.getElementById('autoBtn').addEventListener('click', () => {
+      if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+      runAuto(3);
+    });
 
-            // value: случайное блуждание
-            v = v + (Math.random() - 0.5) * 0.3;
-            v = Math.min(1.0, Math.max(-1.0, v));
-
-            // MCTS: увеличиваем посещения для выбранного хода (симуляция)
-            // выбираем ход с наибольшим policy * value (грубо)
-            const scores = [p1 * (v + 0.5), p2 * (v + 0.2), p3 * (v - 0.1)];
-            let maxIdx = 0;
-            for (let i = 1; i < 3; i++) {
-                if (scores[i] > scores[maxIdx]) maxIdx = i;
-            }
-            if (maxIdx === 0) m1 += 1 + Math.floor(Math.random() * 2);
-            else if (maxIdx === 1) m2 += 1 + Math.floor(Math.random() * 2);
-            else m3 += 1 + Math.floor(Math.random() * 2);
-
-            // иногда добавляем случайные посещения
-            if (Math.random() > 0.6) m1 += 1;
-            if (Math.random() > 0.7) m2 += 1;
-            if (Math.random() > 0.8) m3 += 1;
-
-            // выделяем выбранный узел
-            document.querySelectorAll('.node').forEach(n => n.classList.remove('highlight'));
-            if (maxIdx === 0) nodePolicy.classList.add('highlight');
-            else if (maxIdx === 1) nodePolicy2.classList.add('highlight');
-            else nodePolicy3.classList.add('highlight');
-
-            // также подсветим value и mcts для наглядности
-            nodeValue.classList.add('highlight');
-            if (maxIdx === 0) nodeMcts.classList.add('highlight');
-            else if (maxIdx === 1) nodeMcts2.classList.add('highlight');
-            else nodeMcts3.classList.add('highlight');
-
-            updateDisplay();
-
-            // лог
-            const choice = ['ход A', 'ход B', 'ход C'][maxIdx];
-            logBox.innerHTML = `<span>✅ Шаг ${step}: выбран <strong>${choice}</strong> (Policy: ${p1.toFixed(2)}, ${p2.toFixed(2)}, ${p3.toFixed(2)} | Value: ${v.toFixed(1)})</span>`;
-        }
-
-        // кнопки
-        document.getElementById('stepBtn').addEventListener('click', stepSim);
-        document.getElementById('resetBtn').addEventListener('click', resetSim);
-
-        // инициализация
-        resetSim();
-
-        // добавим небольшую анимацию при загрузке: первый шаг через 1.2с
-        setTimeout(() => {
-            stepSim();
-        }, 800);
-    })();
+    // инициализация + первый шаг для демонстрации
+    resetSim();
+    setTimeout(() => {
+      stepMCTS();
+    }, 400);
+  })();
 </script>
-
 </body>
 </html>
