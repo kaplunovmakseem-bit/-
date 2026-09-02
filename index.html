@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AlphaGo · доклад</title>
-    <!-- шрифт и база -->
+    <title>AlphaGo · доклад + реализация</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet" />
@@ -24,7 +23,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(2px);
@@ -34,11 +33,10 @@
             border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
-        /* заголовок */
         .title-block {
-            margin-bottom: 2.8rem;
+            margin-bottom: 2rem;
             border-bottom: 1px solid #ecedf2;
-            padding-bottom: 1.8rem;
+            padding-bottom: 1.5rem;
         }
 
         h1 {
@@ -56,7 +54,6 @@
             font-size: 1rem;
             color: #5e5e72;
             font-weight: 400;
-            letter-spacing: 0.01em;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -74,9 +71,8 @@
             background: #eaeef5;
         }
 
-        /* карточка / секция */
         .section {
-            margin-bottom: 2.8rem;
+            margin-bottom: 2.4rem;
             opacity: 0;
             transform: translateY(18px);
             animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -198,39 +194,168 @@
             padding-top: 1.6rem;
             margin-top: 1.8rem;
             text-align: center;
-            letter-spacing: 0.01em;
         }
 
-        .footnote a {
-            color: #2b2b3f;
-            text-decoration: none;
-            border-bottom: 1px dotted #b3b9cc;
+        /* ----- РЕАЛИЗАЦИЯ (интерактивный блок) ----- */
+        .sim-block {
+            background: #f0f2f7;
+            border-radius: 2rem;
+            padding: 1.5rem 1.8rem;
+            border: 1px solid #e4e7ef;
+            margin: 1.2rem 0 0.4rem 0;
         }
 
-        /* адаптив */
+        .sim-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.2rem 2rem;
+        }
+
+        .sim-visual {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .node {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.8rem;
+            height: 2.8rem;
+            border-radius: 40px;
+            background: #ffffff;
+            border: 1.5px solid #c8cedb;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #1e1e2a;
+            transition: 0.15s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .node.policy {
+            border-color: #7d8db3;
+            background: #e8ecf5;
+        }
+
+        .node.value {
+            border-color: #9a8bb5;
+            background: #f0ebf7;
+        }
+
+        .node.mcts {
+            border-color: #80a89e;
+            background: #e2f0ec;
+        }
+
+        .node.highlight {
+            transform: scale(1.05);
+            border-width: 2.5px;
+            border-color: #2b2b4a;
+            background: #e2e6f5;
+        }
+
+        .sim-label {
+            font-size: 0.85rem;
+            color: #3f3f57;
+            background: #ffffffcc;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            border: 1px solid #d3d8e5;
+            backdrop-filter: blur(2px);
+        }
+
+        .sim-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem 1.2rem;
+            margin-top: 0.8rem;
+        }
+
+        .btn {
+            background: #ffffff;
+            border: 1px solid #cdd3e0;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #1f1f30;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn:hover {
+            background: #e8ecf5;
+            border-color: #a8b2c9;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: #1e1e2a;
+            border-color: #1e1e2a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2e2e42;
+            border-color: #2e2e42;
+        }
+
+        .log-box {
+            background: #ffffffd9;
+            border-radius: 1.2rem;
+            padding: 0.7rem 1.2rem;
+            font-size: 0.9rem;
+            border: 1px solid #d9dee8;
+            min-height: 3rem;
+            margin-top: 0.8rem;
+            color: #1f1f30;
+            font-weight: 400;
+            backdrop-filter: blur(2px);
+        }
+
+        .log-box span {
+            display: inline-block;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #d9dee8;
+            padding: 0.1rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-right: 0.3rem;
+        }
+
         @media (max-width: 600px) {
             .container { padding: 1.6rem 1.2rem; }
             h1 { font-size: 2rem; }
             .stat-row { flex-direction: column; gap: 0.2rem; padding: 0.8rem 1.2rem; }
             .highlight-card { flex: 1 1 100%; }
+            .node { width: 2.2rem; height: 2.2rem; font-size: 0.7rem; }
+            .sim-block { padding: 1rem; }
         }
 
-        /* небольшая "анимашка" при наведении */
-        .hover-lift {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
-        }
-
-        /* ключевые слова */
         .kw {
             background: #e5e9f2;
             padding: 0.1rem 0.4rem;
             border-radius: 12px;
             font-weight: 450;
             color: #1f1f30;
+        }
+
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.08);
         }
     </style>
 </head>
@@ -243,6 +368,7 @@
             <span>доклад ~ 5 мин</span>
             <span>2016 – 2017</span>
             <span>DeepMind</span>
+            <span>реализация</span>
         </div>
     </div>
 
@@ -282,9 +408,6 @@
             <div class="highlight-card hover-lift"><strong>Value</strong> · оценивает позицию</div>
             <div class="highlight-card hover-lift"><strong>MCTS</strong> · направленный поиск</div>
         </div>
-        <p style="margin-top: 0.6rem; font-size: 0.95rem;">
-            Доска подавалась как многоканальное «изображение» 19×19 — слои кодировали свои/чужие камни, пустые точки и другую информацию.
-        </p>
     </div>
 
     <!-- 3. Методы обучения -->
@@ -298,51 +421,79 @@
         </div>
         <p style="margin-top: 0.6rem;">
             Сначала AlphaGo копировала стиль профессионалов, а затем, благодаря самоигре, находила стратегии, 
-            неизвестные людям. Это позволило ей превзойти человеческий уровень.
-        </p>
-        <div style="background: #f0f2f7; border-radius: 2rem; padding: 0.5rem 1.4rem; display: inline-block; margin-top: 0.3rem; border: 1px solid #e4e7ef;">
-            <span style="font-weight: 450;">⭐</span> самообучение — ключ к сверхчеловеческой игре
-        </div>
-    </div>
-
-    <!-- 4. Классификация ИИ -->
-    <div class="section">
-        <div class="section-title">
-            <span>04</span> Классификация: узкий ИИ
-        </div>
-        <p>
-            AlphaGo — пример <strong>«слабого» (узкого) ИИ</strong>. Она блестяще решает одну задачу (игру в го), 
-            но не умеет играть в шахматы, не понимает речь и не водит машину. 
-            Тем не менее, технологии, лежащие в основе — глубокое обучение, обучение с подкреплением и MCTS — 
-            применяются в самых разных областях: от сворачивания белков до беспилотных автомобилей.
+            неизвестные людям.
         </p>
     </div>
 
-    <!-- 5. Эволюция: AlphaZero и MuZero -->
+    <!-- 4. Классификация + эволюция (объединено) -->
     <div class="section">
         <div class="section-title">
-            <span>05</span> Эволюция: AlphaZero → MuZero
+            <span>04</span> Классификация & эволюция
         </div>
         <p>
-            Версия <strong>AlphaZero</strong> вообще не использовала человеческие партии — только самообучение, 
-            и стала лучшей в го, шахматах и сёги. А <strong>MuZero</strong> пошла ещё дальше: 
-            она учится играть, даже не зная правил, просто наблюдая за игрой, и строит внутреннюю модель происходящего.
+            AlphaGo — пример <strong>«слабого» (узкого) ИИ</strong>. Она решает одну задачу, но технологии (глубокое обучение, RL, MCTS) применяются везде: от сворачивания белков до беспилотников.
         </p>
-        <div class="highlight-grid">
+        <div class="highlight-grid" style="margin-top: 0.3rem;">
             <div class="highlight-card hover-lift"><strong>AlphaGo</strong> · данные людей + RL</div>
             <div class="highlight-card hover-lift"><strong>AlphaZero</strong> · только RL, без человеческих партий</div>
             <div class="highlight-card hover-lift"><strong>MuZero</strong> · учится без правил, строит модель</div>
         </div>
     </div>
 
-    <!-- 6. Итог -->
+    <!-- 5. РЕАЛИЗАЦИЯ – интерактивный блок -->
+    <div class="section">
+        <div class="section-title">
+            <span>05</span> Реализация · как это работает
+            <span class="badge">интерактив</span>
+        </div>
+        <p style="margin-bottom: 0.8rem;">
+            Ниже — симуляция шага поиска MCTS с участием Policy и Value. Нажмите <strong>«Сделать шаг»</strong>, чтобы увидеть, как сеть выбирает ход.
+        </p>
+
+        <div class="sim-block">
+            <div class="sim-row">
+                <div class="sim-visual">
+                    <span class="sim-label">Policy</span>
+                    <span class="node policy" id="nodePolicy">0.62</span>
+                    <span class="node policy" id="nodePolicy2">0.28</span>
+                    <span class="node policy" id="nodePolicy3">0.10</span>
+                </div>
+                <div class="sim-visual">
+                    <span class="sim-label">Value</span>
+                    <span class="node value" id="nodeValue">+0.7</span>
+                </div>
+                <div class="sim-visual">
+                    <span class="sim-label">MCTS</span>
+                    <span class="node mcts" id="nodeMcts">3</span>
+                    <span class="node mcts" id="nodeMcts2">1</span>
+                    <span class="node mcts" id="nodeMcts3">0</span>
+                </div>
+            </div>
+
+            <div class="sim-controls">
+                <button class="btn btn-primary" id="stepBtn">▶ Сделать шаг</button>
+                <button class="btn" id="resetBtn">⟲ Сброс</button>
+                <span style="font-size:0.85rem; color:#4a4a62;" id="stepCounter">Шаг 0</span>
+            </div>
+
+            <div class="log-box" id="logBox">
+                <span>▶ Нажмите «Сделать шаг», чтобы запустить симуляцию AlphaGo</span>
+            </div>
+            <div style="margin-top: 0.5rem; font-size:0.8rem; color:#5a5a72; display:flex; gap: 0.8rem; flex-wrap:wrap;">
+                <span><span class="tag">policy</span> вероятность хода</span>
+                <span><span class="tag">value</span> оценка позиции</span>
+                <span><span class="tag">mcts</span> посещения в дереве</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Заключение -->
     <div class="section">
         <div class="section-title">
             <span>06</span> Заключение
         </div>
         <p>
-            История AlphaGo — это не просто победа компьютера над человеком. Это пример того, как 
-            глубокие нейросети и самообучение позволяют решать задачи, считавшиеся почти неразрешимыми. 
+            История AlphaGo — это пример того, как глубокие нейросети и самообучение решают задачи, считавшиеся почти неразрешимыми. 
             И хотя это пока «узкий» ИИ, эти технологии уже сегодня меняют мир.
         </p>
         <div style="margin-top: 0.8rem; display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem;">
@@ -355,8 +506,7 @@
 
     <div class="divider"></div>
 
-    <!-- маленькая временная шкала (анимация не перегружена) -->
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.8rem; background: #f0f2f7; padding: 0.8rem 1.4rem; border-radius: 3rem; border: 1px solid #e4e7ef; margin-top: 0.2rem;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.8rem; background: #f0f2f7; padding: 0.8rem 1.4rem; border-radius: 3rem; border: 1px solid #e4e7ef;">
         <span style="font-weight: 450;">2016</span>
         <span style="color: #3b3b50;">AlphaGo vs Ли Седоль 4:1</span>
         <span style="font-weight: 450;">2017</span>
@@ -366,9 +516,122 @@
     </div>
 
     <div class="footnote">
-        Доклад по материалам истории AlphaGo · <a href="#">глубокая нейросеть + самообучение</a>
+        Доклад по материалам истории AlphaGo · реализация: симуляция MCTS + Policy/Value
     </div>
 
 </div>
+
+<script>
+    (function() {
+        // состояние симуляции
+        let step = 0;
+        const logBox = document.getElementById('logBox');
+        const stepCounter = document.getElementById('stepCounter');
+
+        // элементы узлов
+        const nodePolicy = document.getElementById('nodePolicy');
+        const nodePolicy2 = document.getElementById('nodePolicy2');
+        const nodePolicy3 = document.getElementById('nodePolicy3');
+        const nodeValue = document.getElementById('nodeValue');
+        const nodeMcts = document.getElementById('nodeMcts');
+        const nodeMcts2 = document.getElementById('nodeMcts2');
+        const nodeMcts3 = document.getElementById('nodeMcts3');
+
+        // начальные значения
+        let p1 = 0.62, p2 = 0.28, p3 = 0.10;
+        let v = 0.7;
+        let m1 = 3, m2 = 1, m3 = 0;
+
+        function updateDisplay() {
+            nodePolicy.textContent = p1.toFixed(2);
+            nodePolicy2.textContent = p2.toFixed(2);
+            nodePolicy3.textContent = p3.toFixed(2);
+            nodeValue.textContent = (v >= 0 ? '+' : '') + v.toFixed(1);
+            nodeMcts.textContent = m1;
+            nodeMcts2.textContent = m2;
+            nodeMcts3.textContent = m3;
+            stepCounter.textContent = 'Шаг ' + step;
+        }
+
+        function resetSim() {
+            step = 0;
+            p1 = 0.62; p2 = 0.28; p3 = 0.10;
+            v = 0.7;
+            m1 = 3; m2 = 1; m3 = 0;
+            // снимаем выделение
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('highlight'));
+            updateDisplay();
+            logBox.innerHTML = '<span>⟲ Сброс. Нажмите «Сделать шаг».</span>';
+        }
+
+        // логика одного шага
+        function stepSim() {
+            step++;
+
+            // эмулируем обновление: policy немного меняется, value колеблется, mcts обновляется
+            // случайные дельты для реализма
+            const deltaP = (Math.random() - 0.5) * 0.12;
+            const deltaP2 = (Math.random() - 0.5) * 0.10;
+            // пересчитываем p3 как остаток
+            let newP1 = Math.min(0.85, Math.max(0.05, p1 + deltaP));
+            let newP2 = Math.min(0.85, Math.max(0.05, p2 + deltaP2));
+            let newP3 = 1 - newP1 - newP2;
+            if (newP3 < 0.05) { newP3 = 0.05; newP1 = 1 - newP2 - newP3; }
+            if (newP3 > 0.85) { newP3 = 0.85; newP1 = 1 - newP2 - newP3; }
+            p1 = newP1; p2 = newP2; p3 = newP3;
+
+            // value: случайное блуждание
+            v = v + (Math.random() - 0.5) * 0.3;
+            v = Math.min(1.0, Math.max(-1.0, v));
+
+            // MCTS: увеличиваем посещения для выбранного хода (симуляция)
+            // выбираем ход с наибольшим policy * value (грубо)
+            const scores = [p1 * (v + 0.5), p2 * (v + 0.2), p3 * (v - 0.1)];
+            let maxIdx = 0;
+            for (let i = 1; i < 3; i++) {
+                if (scores[i] > scores[maxIdx]) maxIdx = i;
+            }
+            if (maxIdx === 0) m1 += 1 + Math.floor(Math.random() * 2);
+            else if (maxIdx === 1) m2 += 1 + Math.floor(Math.random() * 2);
+            else m3 += 1 + Math.floor(Math.random() * 2);
+
+            // иногда добавляем случайные посещения
+            if (Math.random() > 0.6) m1 += 1;
+            if (Math.random() > 0.7) m2 += 1;
+            if (Math.random() > 0.8) m3 += 1;
+
+            // выделяем выбранный узел
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('highlight'));
+            if (maxIdx === 0) nodePolicy.classList.add('highlight');
+            else if (maxIdx === 1) nodePolicy2.classList.add('highlight');
+            else nodePolicy3.classList.add('highlight');
+
+            // также подсветим value и mcts для наглядности
+            nodeValue.classList.add('highlight');
+            if (maxIdx === 0) nodeMcts.classList.add('highlight');
+            else if (maxIdx === 1) nodeMcts2.classList.add('highlight');
+            else nodeMcts3.classList.add('highlight');
+
+            updateDisplay();
+
+            // лог
+            const choice = ['ход A', 'ход B', 'ход C'][maxIdx];
+            logBox.innerHTML = `<span>✅ Шаг ${step}: выбран <strong>${choice}</strong> (Policy: ${p1.toFixed(2)}, ${p2.toFixed(2)}, ${p3.toFixed(2)} | Value: ${v.toFixed(1)})</span>`;
+        }
+
+        // кнопки
+        document.getElementById('stepBtn').addEventListener('click', stepSim);
+        document.getElementById('resetBtn').addEventListener('click', resetSim);
+
+        // инициализация
+        resetSim();
+
+        // добавим небольшую анимацию при загрузке: первый шаг через 1.2с
+        setTimeout(() => {
+            stepSim();
+        }, 800);
+    })();
+</script>
+
 </body>
 </html>
