@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Приоритеты</string>
+
+    <!-- Зоны матрицы -->
+    <string name="zone_do_now">Сделать сейчас</string>
+    <string name="zone_do_now_hint">Важно и легко</string>
+    <string name="zone_plan">Запланировать</string>
+    <string name="zone_plan_hint">Важно, но сложно</string>
+    <string name="zone_in_between">Между делом</string>
+    <string name="zone_in_between_hint">Неважно и легко</string>
+    <string name="zone_postpone">Отложить</string>
+    <string name="zone_postpone_hint">Неважно и сложно</string>
+    <string name="zone_empty">Пока пусто</string>
+    <string name="zone_empty_full">В этой зоне нет задач.\nНажмите «+», чтобы добавить.</string>
+    <string name="zone_title_with_count">%1$s · %2$d</string>
+    <string name="zone_done_section">Выполненные (%1$d)</string>
+
+    <!-- Экраны -->
+    <string name="matrix_title">Матрица задач</string>
+    <string name="list_title">Все задачи</string>
+    <string name="list_empty">Здесь пока нет задач</string>
+    <string name="edit_title_new">Новая задача</string>
+    <string name="edit_title_existing">Редактирование</string>
+    <string name="edit_zone_preview">Попадёт в зону «%1$s»</string>
+
+    <!-- Поля -->
+    <string name="field_title">Название *</string>
+    <string name="field_description">Описание</string>
+    <string name="field_importance">Значимость</string>
+    <string name="field_difficulty">Сложность</string>
+    <string name="field_due_date">Срок выполнения</string>
+    <string name="field_done">Задача выполнена</string>
+    <string name="error_title_required">Введите название задачи</string>
+    <string name="due_date_none">Без срока — выбрать дату</string>
+    <string name="due_date_clear">Убрать срок</string>
+
+    <string-array name="importance_levels">
+        <item>Очень низкая</item>
+        <item>Низкая</item>
+        <item>Средняя</item>
+        <item>Высокая</item>
+        <item>Критическая</item>
+    </string-array>
+    <string-array name="difficulty_levels">
+        <item>Очень легко</item>
+        <item>Легко</item>
+        <item>Средне</item>
+        <item>Сложно</item>
+        <item>Очень сложно</item>
+    </string-array>
+
+    <!-- Карточка -->
+    <string name="card_importance">Значимость %1$d</string>
+    <string name="card_difficulty">Сложность %1$d</string>
+    <string name="card_short_levels">З%1$d · С%2$d</string>
+    <string name="card_due">до %1$s</string>
+    <string name="card_overdue">просрочено: %1$s</string>
+
+    <!-- Сортировка и фильтр -->
+    <string name="sort_label">Сортировка:</string>
+    <string name="sort_importance">Значимость</string>
+    <string name="sort_difficulty">Сложность</string>
+    <string name="sort_due_date">Срок</string>
+    <string name="sort_ascending">По возрастанию</string>
+    <string name="sort_descending">По убыванию</string>
+    <string name="filter_active">Активные</string>
+    <string name="filter_done">Выполненные</string>
+    <string name="filter_all">Все</string>
+
+    <!-- Действия -->
+    <string name="action_add_task">Новая задача</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_back">Назад</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_undo">Отменить</string>
+    <string name="action_choose">Выбрать</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="snackbar_deleted">Задача удалена</string>
+    <string name="snackbar_done">Задача выполнена</string>
+</resources>

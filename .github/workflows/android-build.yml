@@ -1,0 +1,37 @@
+# Сборка Android-приложения на каждый push: проверяет, что проект компилируется,
+# и прикладывает готовый debug-APK к запуску (вкладка Actions → запуск → Artifacts).
+name: Android build
+
+on:
+  push:
+    paths:
+      - "TaskPriority/**"
+      - ".github/workflows/android-build.yml"
+  pull_request:
+    paths:
+      - "TaskPriority/**"
+  workflow_dispatch:
+
+jobs:
+  assemble-debug:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: TaskPriority
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Собрать debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TaskPriority-debug-apk
+          path: TaskPriority/app/build/outputs/apk/debug/*.apk
