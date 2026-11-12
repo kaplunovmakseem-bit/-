@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import date
 from typing import Optional
 
 from PySide6.QtCore import QDate, Qt
 from PySide6.QtWidgets import (
-    QCheckBox, QDateEdit, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
+    QCheckBox, QComboBox, QDateEdit, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
     QLabel, QLineEdit, QMessageBox, QPlainTextEdit, QSlider, QVBoxLayout, QWidget,
 )
 
-from .. import config
+from .. import config, game
 from ..models import DIFFICULTY_LABELS, IMPORTANCE_LABELS, Task, zone_for
 
 
@@ -59,8 +60,8 @@ class TaskDialog(QDialog):
         # Работаем с копией, чтобы «Отмена» не меняла исходный объект
         self._task = replace(task) if task else Task(title="")
 
-        self.setWindowTitle("Новая задача" if self._is_new else "Редактирование задачи")
-        self.setMinimumWidth(480)
+        self.setWindowTitle("Новый квест" if self._is_new else "Редактирование квеста")
+        self.setMinimumWidth(520)
 
         # --- Поля ---
         self.title_edit = QLineEdit(self._task.title)
@@ -90,19 +91,30 @@ class TaskDialog(QDialog):
         due_row.addWidget(self.due_check)
         due_row.addWidget(self.due_edit, 1)
 
-        self.done_check = QCheckBox("Задача выполнена")
+        # Навык, который прокачивает квест
+        self.skill_combo = QComboBox()
+        for key, (name, icon, _color) in game.SKILLS.items():
+            self.skill_combo.addItem(f"{icon}  {name}", key)
+        self.skill_combo.setCurrentIndex(max(0, self.skill_combo.findData(self._task.skill)))
+
+        self.done_check = QCheckBox("Квест выполнен")
         self.done_check.setChecked(self._task.done)
 
         # Подсказка: в какую зону попадёт задача с текущими значениями
         self.zone_hint = QLabel()
         self.zone_hint.setObjectName("muted")
+        self.zone_hint.setWordWrap(True)
         self.importance.slider.valueChanged.connect(self._update_zone_hint)
         self.difficulty.slider.valueChanged.connect(self._update_zone_hint)
+        self.due_check.toggled.connect(self._update_zone_hint)
+        self.due_edit.dateChanged.connect(self._update_zone_hint)
         self._update_zone_hint()
 
         form = QFormLayout()
+        form.setVerticalSpacing(12)
         form.addRow("Название*:", self.title_edit)
         form.addRow("Описание:", self.desc_edit)
+        form.addRow("Навык:", self.skill_combo)
         form.addRow("Значимость:", self.importance)
         form.addRow("Сложность:", self.difficulty)
         form.addRow("Срок:", due_row)
@@ -124,16 +136,25 @@ class TaskDialog(QDialog):
         self.title_edit.setFocus()
 
     def _update_zone_hint(self) -> None:
-        zone = zone_for(self.importance.value(), self.difficulty.value())
+        """Подсказка: зона, редкость и награда за квест с текущими значениями."""
+        imp, diff = self.importance.value(), self.difficulty.value()
+        zone = zone_for(imp, diff)
         color = config.ZONE_COLORS[zone]
+        preview = Task(title="", importance=imp, difficulty=diff,
+                       due_date=self.due_edit.date().toPython() if self.due_check.isChecked() else None)
+        xp = game.xp_for_task(preview, date.today())
+        rarity_name, rarity_color = game.rarity(diff)
+        bonus = " (с бонусом за срок)" if game.is_on_time(preview, date.today()) else ""
         self.zone_hint.setText(
-            f"Зона: <b style='color:{color}'>{config.ZONE_TITLES[zone]}</b>"
+            f"Зона: <b style='color:{color}'>{config.ZONE_ICONS[zone]} {config.ZONE_TITLES[zone]}</b>"
+            f" &nbsp;·&nbsp; Редкость: <b style='color:{rarity_color}'>{rarity_name}</b>"
+            f"<br>Награда: <b style='color:#f5b83d'>+{xp} XP</b>{bonus}"
         )
 
     def _on_accept(self) -> None:
         title = self.title_edit.text().strip()
         if not title:
-            QMessageBox.warning(self, "Нет названия", "Введите название задачи.")
+            QMessageBox.warning(self, "Нет названия", "Введите название квеста.")
             self.title_edit.setFocus()
             return
 
@@ -144,6 +165,7 @@ class TaskDialog(QDialog):
         t.difficulty = self.difficulty.value()
         t.due_date = self.due_edit.date().toPython() if self.due_check.isChecked() else None
         t.done = self.done_check.isChecked()
+        t.skill = self.skill_combo.currentData()
         self.accept()
 
     def result_task(self) -> Task:

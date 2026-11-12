@@ -26,6 +26,8 @@ class Task:
     done: bool = False                      # Выполнена / не выполнена
     created_at: datetime = field(default_factory=lambda: datetime.now().replace(microsecond=0))
     id: Optional[int] = None                # Присваивается базой данных
+    skill: str = "other"                    # Навык, который прокачивает квест (см. game.py)
+    completed_at: Optional[datetime] = None # Когда отмечена выполненной
 
     @property
     def zone(self) -> str:

@@ -9,6 +9,7 @@ MatrixView
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
@@ -17,7 +18,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QVBoxLayout, QWidget,
 )
 
-from .. import config
+from .. import config, game
 from ..models import Task
 from . import themes
 from .task_card import TASK_MIME, TaskCard
@@ -53,6 +54,10 @@ class ZoneWidget(QFrame):
         self.header.setToolTip("Двойной клик — раскрыть/свернуть зону")
         self.header.double_clicked.connect(lambda: self.expand_toggled.emit(self.zone))
 
+        self.icon_label = QLabel(config.ZONE_ICONS[zone])
+        self.icon_label.setObjectName("zoneIcon")
+        self.icon_label.setAlignment(Qt.AlignCenter)
+        self.icon_label.setFixedSize(38, 38)
         self.title_label = QLabel(config.ZONE_TITLES[zone])
         self.title_label.setObjectName("zoneTitle")
         self.hint_label = QLabel(config.ZONE_HINTS[zone])
@@ -74,7 +79,9 @@ class ZoneWidget(QFrame):
         titles.addWidget(self.hint_label)
 
         h = QHBoxLayout(self.header)
-        h.setContentsMargins(10, 8, 8, 8)
+        h.setContentsMargins(12, 10, 10, 10)
+        h.setSpacing(10)
+        h.addWidget(self.icon_label)
         h.addLayout(titles, 1)
         h.addWidget(self.count_label)
         h.addWidget(self.expand_btn)
@@ -82,11 +89,11 @@ class ZoneWidget(QFrame):
         # --- Список карточек (с прокруткой) ---
         self.list_host = QWidget()
         self.list_layout = QVBoxLayout(self.list_host)
-        self.list_layout.setContentsMargins(8, 4, 8, 8)
-        self.list_layout.setSpacing(6)
+        self.list_layout.setContentsMargins(10, 8, 10, 12)
+        self.list_layout.setSpacing(8)
         self.list_layout.addStretch(1)
 
-        self.empty_label = QLabel("Нет задач.\nПеретащите сюда карточку.")
+        self.empty_label = QLabel("Здесь пока пусто\nПеретащите сюда квест")
         self.empty_label.setObjectName("muted")
         self.empty_label.setAlignment(Qt.AlignCenter)
 
@@ -108,29 +115,30 @@ class ZoneWidget(QFrame):
         c = themes.colors()
         accent = config.ZONE_COLORS[self.zone]
         bg = themes.zone_background(accent)
+        border = themes.rgba(accent, 0.35)
         if self._drag_over:
-            bg = themes.mix(bg, accent, 0.25)  # подсветка при наведении карточки
+            bg = themes.mix(bg, accent, 0.18)  # подсветка при наведении карточки
+            border = accent
         self.setStyleSheet(f"""
             QFrame#zone {{
-                background: {bg};
-                border: 2px solid {accent if self._drag_over else themes.mix(bg, accent, 0.45)};
-                border-radius: 10px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {themes.mix(bg, accent, 0.06)}, stop:1 {bg});
+                border: {2 if self._drag_over else 1}px solid {border};
+                border-radius: 18px;
             }}
-            QFrame#zoneHeader {{
-                background: transparent;
-                border: none;
-                border-bottom: 2px solid {accent};
+            QFrame#zoneHeader {{ background: transparent; border: none; }}
+            QLabel#zoneIcon {{
+                background: {themes.rgba(accent, 0.18)}; border-radius: 12px; font-size: 17px;
             }}
-            QLabel#zoneTitle {{ font-size: 13pt; font-weight: bold; color: {accent}; background: transparent; }}
+            QLabel#zoneTitle {{ font-size: 13pt; font-weight: 800; color: {c['text']}; }}
             QLabel#zoneCount {{
                 background: {accent}; color: white; font-weight: bold;
-                border-radius: 11px; min-width: 22px; min-height: 22px; padding: 0 6px;
+                border-radius: 12px; min-width: 24px; min-height: 24px; padding: 0 7px;
             }}
             QPushButton#expandBtn {{
                 background: transparent; border: none; font-size: 14pt; color: {c['muted']}; padding: 0;
             }}
             QPushButton#expandBtn:hover {{ color: {accent}; }}
-            QLabel#muted {{ background: transparent; }}
         """)
 
     # --- Заполнение ----------------------------------------------------------
@@ -151,10 +159,14 @@ class ZoneWidget(QFrame):
             card.clicked.connect(self.card_clicked)
             self.list_layout.insertWidget(i, card)
 
-        active = sum(1 for t in tasks if not t.done)
-        done = len(tasks) - active
-        self.count_label.setText(str(active))
-        self.count_label.setToolTip(f"Активных: {active}, выполнено: {done}")
+        active = [t for t in tasks if not t.done]
+        done = len(tasks) - len(active)
+        self.count_label.setText(str(len(active)))
+        self.count_label.setToolTip(f"Активных: {len(active)}, выполнено: {done}")
+        # В подзаголовке — сколько опыта «лежит» в зоне
+        loot = sum(game.xp_for_task(t, date.today()) for t in active)
+        hint = config.ZONE_HINTS[self.zone]
+        self.hint_label.setText(f"{hint} · 🪙 {loot} XP" if loot else hint)
 
     # --- Drag & drop ---------------------------------------------------------
     def dragEnterEvent(self, event):
@@ -190,7 +202,7 @@ class MatrixView(QWidget):
         self.show_done.setChecked(True)
         self.show_done.toggled.connect(self.refresh)
 
-        hint = QLabel("Перетаскивайте карточки между зонами · двойной клик по заголовку зоны раскрывает её")
+        hint = QLabel("Перетаскивайте квесты между зонами · двойной клик по заголовку раскрывает зону")
         hint.setObjectName("muted")
 
         top = QHBoxLayout()
@@ -198,7 +210,7 @@ class MatrixView(QWidget):
         top.addWidget(self.show_done)
 
         self.grid = QGridLayout()
-        self.grid.setSpacing(10)
+        self.grid.setSpacing(14)
         self.zones: dict[str, ZoneWidget] = {}
         for zone, (row, col) in config.ZONE_GRID.items():
             w = ZoneWidget(zone, controller)
@@ -209,7 +221,7 @@ class MatrixView(QWidget):
         self._reset_stretch()
 
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(10, 6, 10, 10)
+        lay.setContentsMargins(14, 6, 14, 14)
         lay.addLayout(top)
         lay.addLayout(self.grid, 1)
 

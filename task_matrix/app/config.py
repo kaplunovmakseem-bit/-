@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 APP_NAME = "TaskMatrix"
-APP_TITLE = "Матрица задач"
+APP_TITLE = "Life RPG — Матрица квестов"
 
 # --- Шкалы значимости и сложности -------------------------------------------
 SCALE_MIN = 1
@@ -46,6 +46,14 @@ ZONE_TITLES = {
     ZONE_POSTPONE: "Отложить",
 }
 
+# Иконки зон (эмодзи в заголовке)
+ZONE_ICONS = {
+    ZONE_DO_NOW: "⚡",
+    ZONE_PLAN: "🗺️",
+    ZONE_IN_BETWEEN: "🍃",
+    ZONE_POSTPONE: "💤",
+}
+
 ZONE_HINTS = {
     ZONE_DO_NOW: "Значимо и просто",
     ZONE_PLAN: "Значимо и сложно",
@@ -55,13 +63,13 @@ ZONE_HINTS = {
 
 # Акцентные цвета зон (одинаковы для обеих тем; фон подбирается в themes.py)
 ZONE_COLORS = {
-    ZONE_DO_NOW: "#2e9e5b",     # зелёный
-    ZONE_PLAN: "#3a7bd5",       # синий
-    ZONE_IN_BETWEEN: "#d9a21b", # жёлтый
-    ZONE_POSTPONE: "#8a8f98",   # серый
+    ZONE_DO_NOW: "#1fbf75",     # изумрудный
+    ZONE_PLAN: "#6d7cff",       # фиолетово-синий
+    ZONE_IN_BETWEEN: "#f0a53a", # янтарный
+    ZONE_POSTPONE: "#9b8fc0",   # лавандово-серый
 }
 
-OVERDUE_COLOR = "#d64545"  # цвет подсветки просроченных задач
+OVERDUE_COLOR = "#ef4f5f"  # цвет подсветки просроченных задач
 
 
 def data_dir() -> Path:

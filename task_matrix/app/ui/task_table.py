@@ -19,12 +19,12 @@ from PySide6.QtWidgets import (
     QMenu, QTableView, QVBoxLayout, QWidget,
 )
 
-from .. import config
+from .. import config, game
 from ..models import Task
 
 # Номера столбцов
-COL_DONE, COL_TITLE, COL_ZONE, COL_IMP, COL_DIFF, COL_DUE, COL_CREATED = range(7)
-HEADERS = ["✓", "Название", "Зона", "Значимость", "Сложность", "Срок", "Создана"]
+COL_DONE, COL_TITLE, COL_SKILL, COL_ZONE, COL_IMP, COL_DIFF, COL_XP, COL_DUE, COL_CREATED = range(9)
+HEADERS = ["✓", "Квест", "Навык", "Зона", "Значимость", "Сложность", "Награда", "Срок", "Создан"]
 
 # Значения фильтра по статусу
 FILTER_ACTIVE, FILTER_DONE, FILTER_ALL = "active", "done", "all"
@@ -67,8 +67,12 @@ class TaskTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             if col == COL_TITLE:
                 return t.title
+            if col == COL_SKILL:
+                return f"{game.skill_icon(t.skill)} {game.skill_name(t.skill)}"
             if col == COL_ZONE:
-                return config.ZONE_TITLES[t.zone]
+                return f"{config.ZONE_ICONS[t.zone]} {config.ZONE_TITLES[t.zone]}"
+            if col == COL_XP:
+                return f"{game.xp_for_task(t, date.today())} XP"
             if col == COL_IMP:
                 return t.importance
             if col == COL_DIFF:
@@ -84,6 +88,10 @@ class TaskTableModel(QAbstractTableModel):
                 return int(t.done)
             if col == COL_TITLE:
                 return t.title.lower()
+            if col == COL_SKILL:
+                return game.skill_name(t.skill)
+            if col == COL_XP:
+                return game.xp_for_task(t, date.today())
             if col == COL_ZONE:
                 return list(config.ZONE_GRID).index(t.zone)
             if col == COL_IMP:
@@ -99,25 +107,31 @@ class TaskTableModel(QAbstractTableModel):
         if role == Qt.CheckStateRole and col == COL_DONE:
             return Qt.Checked if t.done else Qt.Unchecked
 
-        if role == Qt.TextAlignmentRole and col in (COL_IMP, COL_DIFF, COL_DUE, COL_CREATED):
+        if role == Qt.TextAlignmentRole and col in (COL_IMP, COL_DIFF, COL_XP, COL_DUE, COL_CREATED):
             return int(Qt.AlignCenter)
 
         # Просроченные — красным, выполненные — зачёркнуты
         if role == Qt.ForegroundRole:
             if col == COL_ZONE:
                 return QColor(config.ZONE_COLORS[t.zone])
+            if col == COL_SKILL:
+                return QColor(game.skill_color(t.skill))
+            if col == COL_XP:
+                return QColor("#f5b83d")
+            if col == COL_DIFF:
+                return QColor(game.rarity(t.difficulty)[1])
             if t.is_overdue:
                 return QColor(config.OVERDUE_COLOR)
         if role == Qt.FontRole:
             font = QFont()
             if t.done and col == COL_TITLE:
                 font.setStrikeOut(True)
-            if t.is_overdue and col in (COL_TITLE, COL_DUE):
+            if (t.is_overdue and col in (COL_TITLE, COL_DUE)) or col == COL_XP:
                 font.setBold(True)
             return font
         if role == Qt.ToolTipRole:
             if t.is_overdue:
-                return "Задача просрочена"
+                return "Квест просрочен"
             return t.description or None
         return None
 
@@ -168,7 +182,7 @@ class TaskTableView(QWidget):
 
         # --- Панель фильтров ---
         self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("Поиск по названию…  (Ctrl+F)")
+        self.search_edit.setPlaceholderText("🔍  Поиск по названию…  (Ctrl+F)")
         self.search_edit.setClearButtonEnabled(True)
 
         self.status_combo = QComboBox()
@@ -199,13 +213,16 @@ class TaskTableView(QWidget):
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
         self.table.verticalHeader().hide()
+        self.table.verticalHeader().setDefaultSectionSize(38)
+        self.table.setShowGrid(False)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         hdr = self.table.horizontalHeader()
         hdr.setSectionResizeMode(QHeaderView.ResizeToContents)
         hdr.setSectionResizeMode(COL_TITLE, QHeaderView.Stretch)
 
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(10, 10, 10, 10)
+        lay.setContentsMargins(14, 10, 14, 14)
+        lay.setSpacing(10)
         lay.addLayout(bar)
         lay.addWidget(self.table, 1)
 
@@ -222,7 +239,7 @@ class TaskTableView(QWidget):
         self._update_count()
 
     def _update_count(self) -> None:
-        self.count_label.setText(f"Задач: {self.proxy.rowCount()}")
+        self.count_label.setText(f"Квестов: {self.proxy.rowCount()}")
 
     def _task_id_at(self, proxy_index) -> Optional[int]:
         if not proxy_index.isValid():
@@ -242,9 +259,9 @@ class TaskTableView(QWidget):
         if task_id is None:
             return
         menu = QMenu(self)
-        act_edit = menu.addAction("Редактировать…")
+        act_edit = menu.addAction("✏️  Редактировать…")
         menu.addSeparator()
-        act_del = menu.addAction("Удалить…")
+        act_del = menu.addAction("🗑️  Удалить…")
         chosen = menu.exec(self.table.viewport().mapToGlobal(pos))
         if chosen is act_edit:
             self.controller.edit_task(task_id)
