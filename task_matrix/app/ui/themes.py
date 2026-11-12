@@ -1,66 +1,94 @@
 """
-Светлая и тёмная темы в «игровом» стиле.
+Темы в стиле iOS: светлая и тёмная.
 
-Тема = набор цветов (словарь THEMES) + таблица стилей QSS, которая
-строится из этих цветов. Переключение темы заново применяет палитру и
-стиль ко всему приложению; виджеты с индивидуальной раскраской (карточки,
-зоны, профиль) берут цвета через colors().
+Цвета взяты из системной палитры Apple (systemBlue, systemGreen, …) и
+«сгруппированных» фонов iOS: серый фон окна + белые скруглённые карточки
+(в тёмной теме — чёрный фон + тёмно-серые карточки).
+
+Тема = набор цветов (THEMES) + таблица стилей QSS, построенная из них.
+Виджеты, которые рисуются вручную (диаграммы, кольца, переключатели),
+берут цвета через colors().
 """
 
 from __future__ import annotations
 
-import sys
-
 from PySide6.QtGui import QColor, QFont, QPalette
 from PySide6.QtWidgets import QApplication
+
+from .. import config, game
 
 LIGHT = "light"
 DARK = "dark"
 
-THEME_NAMES = {DARK: "🌙 Тёмная (игровая)", LIGHT: "☀️ Светлая"}
+THEME_NAMES = {LIGHT: "Светлая", DARK: "Тёмная"}
 
 THEMES = {
-    DARK: {
-        "window": "#0e1120",      # фон окна (верх градиента)
-        "window2": "#151a30",     # фон окна (низ градиента)
-        "surface": "#1b2038",     # карточки, поля ввода
-        "surface2": "#242a48",    # приподнятые элементы, чипы
-        "text": "#eceefe",
-        "muted": "#8d93b8",
-        "border": "#2d3458",
-        "accent": "#8b5cf6",      # фиолетовый
-        "accent2": "#22d3ee",     # бирюзовый (второй цвет градиента)
-        "accent_text": "#ffffff",
-        "gold": "#fbbf24",
-        "zone_tint": 0.10,        # насколько цвет зоны окрашивает её фон
-    },
     LIGHT: {
-        "window": "#f5f3ff",
-        "window2": "#eef4ff",
-        "surface": "#ffffff",
-        "surface2": "#f0edfb",
-        "text": "#1f1d3d",
-        "muted": "#6f6a93",
-        "border": "#e3def5",
-        "accent": "#7c4dff",
-        "accent2": "#0ea5e9",
-        "accent_text": "#ffffff",
-        "gold": "#e59e0b",
-        "zone_tint": 0.08,
+        "window": "#F2F2F7",      # systemGroupedBackground
+        "surface": "#FFFFFF",     # карточки (secondarySystemGroupedBackground)
+        "surface2": "#F2F2F7",    # поля ввода и плитки внутри карточек
+        "fill": "#E5E5EA",        # треки слайдеров, сегментированный контрол
+        "separator": "#D8D8DC",   # тонкие разделители
+        "text": "#000000",        # label
+        "muted": "#8A8A8E",       # secondaryLabel
+        "faint": "#C7C7CC",       # tertiaryLabel, пустые кружки
+        "accent": "#007AFF",      # systemBlue
+        "accent_text": "#FFFFFF",
+        "gold": "#FF9500",        # опыт (systemOrange)
+        "danger": "#FF3B30",
+        "success": "#34C759",
+        "selection": "#E8F1FF",   # фон выделенной строки
+        # Кольца активности (как в «Фитнесе»)
+        "ring_xp": "#FF2D55", "ring_quests": "#34C759", "ring_week": "#32ADE6",
+    },
+    DARK: {
+        "window": "#000000",
+        "surface": "#1C1C1E",
+        "surface2": "#2C2C2E",
+        "fill": "#3A3A3C",
+        "separator": "#38383A",
+        "text": "#FFFFFF",
+        "muted": "#98989F",
+        "faint": "#48484A",
+        "accent": "#0A84FF",
+        "accent_text": "#FFFFFF",
+        "gold": "#FF9F0A",
+        "danger": "#FF453A",
+        "success": "#30D158",
+        "selection": "#1A2B45",
+        "ring_xp": "#FA114F", "ring_quests": "#92E82A", "ring_week": "#1EEAEF",
     },
 }
 
-_current = DARK
+_current = LIGHT
 
 
 def current() -> str:
     return _current
 
 
+def is_dark() -> bool:
+    return _current == DARK
+
+
 def colors() -> dict:
     return THEMES[_current]
 
 
+# --- Цвета сущностей с учётом темы -------------------------------------------
+def zone_color(zone: str) -> str:
+    return (config.ZONE_COLORS_DARK if is_dark() else config.ZONE_COLORS)[zone]
+
+
+def skill_color(skill: str) -> str:
+    return game.skill_color(skill, dark=is_dark())
+
+
+def overdue_color() -> str:
+    return colors()["danger"]
+
+
+# --- Утилиты для цветов ------------------------------------------------------
 def mix(color_a: str, color_b: str, ratio: float) -> str:
     """Смешивает два цвета: ratio=0 → color_a, ratio=1 → color_b."""
     a, b = QColor(color_a), QColor(color_b)
@@ -76,171 +104,163 @@ def rgba(color: str, alpha: float) -> str:
     return f"rgba({c.red()}, {c.green()}, {c.blue()}, {int(alpha * 255)})"
 
 
-def zone_background(accent: str) -> str:
-    """Фон зоны: поверхность, слегка окрашенная акцентным цветом зоны."""
-    c = colors()
-    return mix(c["window2"], accent, c["zone_tint"])
+def qcolor(color: str, alpha: float = 1.0) -> QColor:
+    c = QColor(color)
+    c.setAlphaF(alpha)
+    return c
 
 
-def gradient(c1: str, c2: str) -> str:
-    """Горизонтальный градиент для QSS."""
-    return f"qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {c1}, stop:1 {c2})"
-
-
-def progress_style(c1: str, c2: str, height: int = 10) -> str:
-    """Стиль прогресс-бара с градиентной заливкой (полоса опыта)."""
+def progress_style(color: str, height: int = 6) -> str:
+    """Тонкий iOS-прогресс-бар: серый трек и цветная заливка."""
     c = colors()
     return f"""
         QProgressBar {{
-            background: {c['surface2']}; border: none; border-radius: {height // 2}px;
-            min-height: {height}px; max-height: {height}px; text-align: center;
+            background: {c['fill']}; border: none; border-radius: {height // 2}px;
+            min-height: {height}px; max-height: {height}px;
         }}
-        QProgressBar::chunk {{ background: {gradient(c1, c2)}; border-radius: {height // 2}px; }}
+        QProgressBar::chunk {{ background: {color}; border-radius: {height // 2}px; }}
     """
+
+
+def ui_font(size: float = 10, weight: QFont.Weight = QFont.Normal) -> QFont:
+    """
+    Шрифт интерфейса. Оригинальный шрифт iOS (SF Pro) на Windows обычно
+    не установлен, поэтому берём ближайшие по духу: Segoe UI Variable
+    (Windows 11), затем Segoe UI. Если SF Pro установлен — возьмётся он.
+    """
+    f = QFont()
+    f.setFamilies(["SF Pro Display", "SF Pro Text", "Segoe UI Variable Display",
+                   "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", "Inter"])
+    f.setPointSizeF(size)
+    f.setWeight(weight)
+    return f
 
 
 def _stylesheet(c: dict) -> str:
     return f"""
     QWidget {{ color: {c['text']}; font-size: 10pt; }}
-    QMainWindow, QDialog {{
-        background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {c['window']}, stop:1 {c['window2']});
-    }}
-    QMenuBar {{ background: transparent; }}
-    QMenuBar::item:selected {{ background: {c['surface2']}; border-radius: 4px; }}
-    QMenu {{ background: {c['surface']}; border: 1px solid {c['border']}; border-radius: 8px; padding: 4px; }}
-    QMenu::item {{ padding: 6px 18px; border-radius: 6px; }}
-    QMenu::item:selected {{ background: {c['accent']}; color: {c['accent_text']}; }}
-    QMenu::separator {{ height: 1px; background: {c['border']}; margin: 4px 8px; }}
+    QMainWindow, QDialog, QStackedWidget#pages, QWidget#page {{ background: {c['window']}; }}
 
-    QLineEdit, QTextEdit, QPlainTextEdit, QDateEdit, QComboBox, QSpinBox {{
-        background: {c['surface']};
-        border: 1px solid {c['border']};
+    QMenu {{ background: {c['surface']}; border: 1px solid {c['separator']}; border-radius: 12px; padding: 6px; }}
+    QMenu::item {{ padding: 7px 22px 7px 12px; border-radius: 8px; }}
+    QMenu::item:selected {{ background: {c['accent']}; color: {c['accent_text']}; }}
+    QMenu::separator {{ height: 1px; background: {c['separator']}; margin: 4px 6px; }}
+
+    /* Поля ввода в стиле iOS: серая заливка, без рамки */
+    QLineEdit, QTextEdit, QPlainTextEdit, QDateEdit, QComboBox {{
+        background: {c['surface2']};
+        border: 1px solid transparent;
         border-radius: 10px;
-        padding: 6px 10px;
+        padding: 7px 10px;
         selection-background-color: {c['accent']};
     }}
-    QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QDateEdit:focus,
-    QComboBox:focus, QSpinBox:focus {{ border: 1px solid {c['accent']}; }}
-    QComboBox::drop-down, QDateEdit::drop-down {{ border: none; width: 22px; }}
+    QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QDateEdit:focus, QComboBox:focus {{
+        border: 1px solid {c['accent']};
+    }}
+    QComboBox::drop-down, QDateEdit::drop-down {{ border: none; width: 24px; }}
     QComboBox QAbstractItemView {{
-        background: {c['surface']}; border: 1px solid {c['border']};
-        selection-background-color: {c['accent']}; outline: none;
+        background: {c['surface']}; border: 1px solid {c['separator']}; border-radius: 10px;
+        selection-background-color: {c['accent']}; outline: none; padding: 4px;
     }}
+    QCalendarWidget QWidget {{ alternate-background-color: {c['surface2']}; }}
+    QCalendarWidget QToolButton {{ color: {c['text']}; background: transparent; border: none; padding: 4px 8px; }}
+    QCalendarWidget QAbstractItemView {{ selection-background-color: {c['accent']}; selection-color: white; }}
 
+    /* Кнопки: «серая» по умолчанию, «заполненная» — #primary, «текстовая» — #plain */
     QPushButton {{
-        background: {c['surface2']};
-        border: 1px solid {c['border']};
-        border-radius: 10px;
-        padding: 8px 14px;
-    }}
-    QPushButton:hover {{ border-color: {c['accent']}; }}
-    QPushButton:pressed {{ background: {c['border']}; }}
-    QPushButton#primary {{
-        background: {gradient(c['accent'], c['accent2'])};
-        color: {c['accent_text']};
+        background: {c['fill']};
+        color: {c['text']};
         border: none;
-        font-weight: bold;
-        padding: 9px 18px;
-    }}
-    QPushButton#primary:hover {{ background: {gradient(mix(c['accent'], '#ffffff', 0.12), mix(c['accent2'], '#ffffff', 0.12))}; }}
-
-    /* Круглые «игровые» чекбоксы */
-    QCheckBox {{ spacing: 8px; background: transparent; }}
-    QCheckBox::indicator {{
-        width: 18px; height: 18px; border-radius: 10px;
-        border: 2px solid {c['muted']}; background: transparent;
-    }}
-    QCheckBox::indicator:hover {{ border-color: {c['accent']}; }}
-    QCheckBox::indicator:checked {{
-        background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-                                    stop:0 {c['accent2']}, stop:0.55 {c['accent']}, stop:0.6 {c['accent']});
-        border-color: {c['accent']};
-    }}
-    QRadioButton {{ spacing: 8px; background: transparent; }}
-    QRadioButton::indicator {{
-        width: 14px; height: 14px; border-radius: 9px;
-        border: 2px solid {c['muted']}; background: transparent;
-    }}
-    QRadioButton::indicator:checked {{
-        border: 2px solid {c['accent']};
-        background: qradialgradient(cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
-                                    stop:0 {c['accent']}, stop:0.5 {c['accent']}, stop:0.6 transparent);
-    }}
-    QTableView::indicator {{
-        width: 16px; height: 16px; border-radius: 9px;
-        border: 2px solid {c['muted']}; background: transparent;
-    }}
-    QTableView::indicator:checked {{ background: {c['accent']}; border-color: {c['accent']}; }}
-
-    QTabWidget::pane {{ border: none; }}
-    QTabWidget::tab-bar {{ left: 14px; }}
-    QTabBar::tab {{
-        background: transparent;
-        padding: 8px 18px;
-        margin-right: 4px;
         border-radius: 10px;
-        color: {c['muted']};
-        font-weight: bold;
+        padding: 8px 16px;
+        font-weight: 600;
     }}
-    QTabBar::tab:hover {{ color: {c['text']}; }}
-    QTabBar::tab:selected {{ color: {c['accent_text']}; background: {gradient(c['accent'], c['accent2'])}; }}
+    QPushButton:hover {{ background: {mix(c['fill'], c['text'], 0.06)}; }}
+    QPushButton:pressed {{ background: {mix(c['fill'], c['text'], 0.14)}; }}
+    QPushButton#primary {{ background: {c['accent']}; color: {c['accent_text']}; }}
+    QPushButton#primary:hover {{ background: {mix(c['accent'], '#ffffff', 0.12)}; }}
+    QPushButton#primary:pressed {{ background: {mix(c['accent'], '#000000', 0.15)}; }}
+    QPushButton#plain {{ background: transparent; color: {c['accent']}; padding: 6px 8px; font-weight: normal; }}
+    QPushButton#plain:hover {{ color: {mix(c['accent'], c['text'], 0.25)}; }}
+    QPushButton#plainBold {{ background: transparent; color: {c['accent']}; padding: 6px 8px; font-weight: bold; }}
+    QPushButton#round {{
+        background: {c['accent']}; color: white; border-radius: 18px; padding: 0;
+        font-size: 18pt; font-weight: 400;
+    }}
+    QPushButton#round:hover {{ background: {mix(c['accent'], '#ffffff', 0.12)}; }}
+
+    QCheckBox {{ spacing: 8px; background: transparent; }}
+
+    /* Ползунки как в iOS: тонкий трек, белая круглая ручка */
+    QSlider::groove:horizontal {{ height: 4px; background: {c['fill']}; border-radius: 2px; }}
+    QSlider::sub-page:horizontal {{ background: {c['accent']}; border-radius: 2px; }}
+    QSlider::handle:horizontal {{
+        background: #FFFFFF; border: 1px solid {c['faint']};
+        width: 22px; height: 22px; margin: -10px 0; border-radius: 12px;
+    }}
 
     QTableView {{
         background: {c['surface']};
-        alternate-background-color: {mix(c['surface'], c['surface2'], 0.5)};
-        border: 1px solid {c['border']};
-        border-radius: 12px;
+        border: none;
+        border-radius: 14px;
         gridline-color: transparent;
-        selection-background-color: {rgba(c['accent'], 0.35)};
+        selection-background-color: {c['selection']};
         selection-color: {c['text']};
+        outline: none;
     }}
-    QTableView::item {{ padding: 4px; }}
+    QTableView::item {{ border-bottom: 1px solid {c['separator']}; padding: 4px 6px; }}
+    QTableView::item:selected {{ background: {c['selection']}; }}
+    QTableView::indicator {{
+        width: 18px; height: 18px; border-radius: 10px;
+        border: 2px solid {c['faint']}; background: transparent;
+    }}
+    QTableView::indicator:checked {{ background: {c['accent']}; border-color: {c['accent']}; }}
+    QHeaderView {{ background: transparent; }}
     QHeaderView::section {{
         background: {c['surface']};
         color: {c['muted']};
         border: none;
-        border-bottom: 1px solid {c['border']};
-        padding: 8px 6px;
-        font-weight: bold;
+        border-bottom: 1px solid {c['separator']};
+        padding: 10px 6px;
+        font-size: 8.5pt;
+        font-weight: 600;
     }}
+    QTableCornerButton::section {{ background: {c['surface']}; border: none; }}
 
     QScrollArea {{ background: transparent; border: none; }}
     QScrollArea > QWidget > QWidget {{ background: transparent; }}
-    QScrollBar:vertical {{ background: transparent; width: 8px; margin: 2px; }}
-    QScrollBar::handle:vertical {{ background: {c['border']}; border-radius: 3px; min-height: 30px; }}
-    QScrollBar::handle:vertical:hover {{ background: {c['muted']}; }}
-    QScrollBar:horizontal {{ background: transparent; height: 8px; margin: 2px; }}
-    QScrollBar::handle:horizontal {{ background: {c['border']}; border-radius: 3px; min-width: 30px; }}
+    QScrollBar:vertical {{ background: transparent; width: 8px; margin: 3px 1px; }}
+    QScrollBar::handle:vertical {{ background: {rgba(c['muted'], 0.45)}; border-radius: 3px; min-height: 30px; }}
+    QScrollBar:horizontal {{ background: transparent; height: 8px; margin: 1px 3px; }}
+    QScrollBar::handle:horizontal {{ background: {rgba(c['muted'], 0.45)}; border-radius: 3px; min-width: 30px; }}
     QScrollBar::add-line, QScrollBar::sub-line {{ width: 0; height: 0; }}
     QScrollBar::add-page, QScrollBar::sub-page {{ background: transparent; }}
 
-    QSlider::groove:horizontal {{ height: 6px; background: {c['surface2']}; border-radius: 3px; }}
-    QSlider::sub-page:horizontal {{ background: {gradient(c['accent'], c['accent2'])}; border-radius: 3px; }}
-    QSlider::handle:horizontal {{
-        background: {c['accent_text']}; border: 3px solid {c['accent']};
-        width: 12px; height: 12px; margin: -6px 0; border-radius: 9px;
-    }}
-
-    QGroupBox {{
-        border: 1px solid {c['border']}; border-radius: 12px; margin-top: 14px; padding: 10px;
-        background: {c['surface']};
-    }}
-    QGroupBox::title {{ subcontrol-origin: margin; left: 12px; padding: 0 4px; color: {c['muted']}; }}
-
     QLabel {{ background: transparent; }}
     QLabel#muted {{ color: {c['muted']}; }}
+    QLabel#largeTitle {{ font-size: 24pt; font-weight: 800; }}
     QLabel#h1 {{ font-size: 18pt; font-weight: 800; }}
-    QLabel#h2 {{ font-size: 13pt; font-weight: bold; }}
+    QLabel#h2 {{ font-size: 13pt; font-weight: 700; }}
+    QLabel#caption {{ color: {c['muted']}; font-size: 8.5pt; font-weight: 600; }}
+    QLabel#sectionHeader {{ color: {c['muted']}; font-size: 8.5pt; font-weight: 600; padding-left: 14px; }}
 
-    QFrame#panel {{
-        background: {c['surface']}; border: 1px solid {c['border']}; border-radius: 16px;
+    /* Карточка iOS — белый скруглённый блок */
+    QFrame#card {{ background: {c['surface']}; border: none; border-radius: 16px; }}
+    QFrame#tile {{ background: {c['surface2']}; border: none; border-radius: 12px; }}
+    QFrame#separator {{ background: {c['separator']}; border: none; max-height: 1px; min-height: 1px; }}
+
+    /* Нижняя панель вкладок */
+    QFrame#tabBar {{ background: {rgba(c['surface'], 0.96)}; border: none; border-top: 1px solid {c['separator']}; }}
+    QPushButton#tabButton {{
+        background: transparent; color: {c['muted']}; border: none; border-radius: 10px;
+        padding: 4px 18px; font-size: 8.5pt; font-weight: 600;
     }}
+    QPushButton#tabButton:hover {{ background: {rgba(c['muted'], 0.10)}; }}
+    QPushButton#tabButton:checked {{ color: {c['accent']}; }}
 
     QToolTip {{
-        background: {c['surface']};
-        color: {c['text']};
-        border: 1px solid {c['border']};
-        padding: 4px;
+        background: {c['surface']}; color: {c['text']};
+        border: 1px solid {c['separator']}; border-radius: 8px; padding: 6px 8px;
     }}
     """
 
@@ -248,12 +268,9 @@ def _stylesheet(c: dict) -> str:
 def apply_theme(app: QApplication, name: str) -> None:
     """Применяет тему ко всему приложению."""
     global _current
-    _current = name if name in THEMES else DARK
+    _current = name if name in THEMES else LIGHT
     c = THEMES[_current]
-
-    # Шрифт: на Windows — Segoe UI (современный и хорошо читаемый)
-    if sys.platform == "win32":
-        app.setFont(QFont("Segoe UI", 10))
+    app.setFont(ui_font(10))
 
     # Палитра нужна для стандартных элементов (календарь, меню, диалоги)
     pal = QPalette()
@@ -262,7 +279,7 @@ def apply_theme(app: QApplication, name: str) -> None:
     pal.setColor(QPalette.Base, QColor(c["surface"]))
     pal.setColor(QPalette.AlternateBase, QColor(c["surface2"]))
     pal.setColor(QPalette.Text, QColor(c["text"]))
-    pal.setColor(QPalette.Button, QColor(c["surface2"]))
+    pal.setColor(QPalette.Button, QColor(c["fill"]))
     pal.setColor(QPalette.ButtonText, QColor(c["text"]))
     pal.setColor(QPalette.Highlight, QColor(c["accent"]))
     pal.setColor(QPalette.HighlightedText, QColor(c["accent_text"]))

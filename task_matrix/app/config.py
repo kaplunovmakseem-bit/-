@@ -49,8 +49,8 @@ ZONE_TITLES = {
 # Иконки зон (эмодзи в заголовке)
 ZONE_ICONS = {
     ZONE_DO_NOW: "⚡",
-    ZONE_PLAN: "🗺️",
-    ZONE_IN_BETWEEN: "🍃",
+    ZONE_PLAN: "📅",
+    ZONE_IN_BETWEEN: "☕",
     ZONE_POSTPONE: "💤",
 }
 
@@ -62,14 +62,22 @@ ZONE_HINTS = {
 }
 
 # Акцентные цвета зон (одинаковы для обеих тем; фон подбирается в themes.py)
-ZONE_COLORS = {
-    ZONE_DO_NOW: "#1fbf75",     # изумрудный
-    ZONE_PLAN: "#6d7cff",       # фиолетово-синий
-    ZONE_IN_BETWEEN: "#f0a53a", # янтарный
-    ZONE_POSTPONE: "#9b8fc0",   # лавандово-серый
+# Системные цвета iOS: зелёный, синий, оранжевый, фиолетовый.
+# Палитра проверена на различимость, в т. ч. при нарушениях цветового зрения.
+ZONE_COLORS = {                 # светлая тема
+    ZONE_DO_NOW: "#34C759",
+    ZONE_PLAN: "#007AFF",
+    ZONE_IN_BETWEEN: "#FF9500",
+    ZONE_POSTPONE: "#AF52DE",
+}
+ZONE_COLORS_DARK = {            # тёмная тема
+    ZONE_DO_NOW: "#28B04B",
+    ZONE_PLAN: "#0A84FF",
+    ZONE_IN_BETWEEN: "#D27C08",
+    ZONE_POSTPONE: "#BF5AF2",
 }
 
-OVERDUE_COLOR = "#ef4f5f"  # цвет подсветки просроченных задач
+OVERDUE_COLOR = "#FF3B30"  # цвет подсветки просроченных задач
 
 
 def data_dir() -> Path:

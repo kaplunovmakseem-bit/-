@@ -1,18 +1,22 @@
 """
-Вкладка «Персонаж»: профиль игрока.
+Вкладка «Профиль» в стиле страницы Apple ID:
 
-  ┌ Герой: аватар, имя, уровень, полоса опыта, ключевые цифры ┐
-  ├ Активность за 14 дней (столбики XP)                       ┤
-  ├ Навыки (уровень и прогресс каждого)  │  Журнал опыта       ┤
-  └ Достижения (сетка плиток, закрытые — серые)               ┘
+        (  🧙  )
+         Максим
+   Уровень 4 · Ученик
+   ━━━━━━━──────────  49 / 250 XP
+  [всего XP] [квестов] [легендарных] [серия] [в срок] [рекорд]
+
+  НАВЫКИ                         ЖУРНАЛ
+  💪 Сила   ━━━──  ур. 2          ✨ Сдать отчёт        +103 XP
+  …                               …
+  ДОСТИЖЕНИЯ
+  [🎯 Первый шаг] [⚔️ Охотник] …
 """
 
 from __future__ import annotations
 
-from datetime import date
-
-from PySide6.QtCore import QRectF, Qt
-from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFrame, QGridLayout, QHBoxLayout, QLabel, QProgressBar, QScrollArea,
     QVBoxLayout, QWidget,
@@ -21,22 +25,9 @@ from PySide6.QtWidgets import (
 from .. import game
 from . import themes
 from .hud import AVATAR_SETTING, NAME_SETTING
-from .widgets import avatar, chip
-
-WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
-
-
-def panel(title: str) -> tuple[QFrame, QVBoxLayout]:
-    """Скруглённая панель с заголовком; возвращает (рамка, layout для содержимого)."""
-    frame = QFrame()
-    frame.setObjectName("panel")
-    lay = QVBoxLayout(frame)
-    lay.setContentsMargins(18, 14, 18, 16)
-    lay.setSpacing(10)
-    head = QLabel(title)
-    head.setObjectName("h2")
-    lay.addWidget(head)
-    return frame, lay
+from .ios import card
+from .settings_dialog import section_title
+from .widgets import avatar
 
 
 def clear(layout) -> None:
@@ -50,58 +41,6 @@ def clear(layout) -> None:
             clear(item.layout())
 
 
-class ActivityChart(QWidget):
-    """Столбчатая диаграмма опыта по дням, рисуется вручную через QPainter."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.data: list[tuple[date, int]] = []
-        self.setMinimumHeight(150)
-
-    def set_data(self, data: list[tuple[date, int]]) -> None:
-        self.data = data
-        self.update()
-
-    def paintEvent(self, event):
-        if not self.data:
-            return
-        c = themes.colors()
-        p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-        w, h = self.width(), self.height()
-        label_h, value_h = 20, 16
-        chart_h = h - label_h - value_h
-        n = len(self.data)
-        slot = w / n
-        bar_w = min(30.0, slot * 0.6)
-        peak = max((v for _, v in self.data), default=0) or 1
-
-        small = QFont(self.font())
-        small.setPointSizeF(8)
-        p.setFont(small)
-        for i, (day, xp) in enumerate(self.data):
-            x = i * slot + (slot - bar_w) / 2
-            bar_h = max(4.0, chart_h * xp / peak) if xp else 4.0
-            y = value_h + chart_h - bar_h
-            rect = QRectF(x, y, bar_w, bar_h)
-            path = QPainterPath()
-            path.addRoundedRect(rect, 6, 6)
-            if xp:
-                grad = QLinearGradient(rect.topLeft(), rect.bottomLeft())
-                grad.setColorAt(0, QColor(c["accent2"]))
-                grad.setColorAt(1, QColor(c["accent"]))
-                p.fillPath(path, grad)
-                p.setPen(QColor(c["text"]))
-                p.drawText(QRectF(i * slot, y - value_h, slot, value_h), Qt.AlignCenter, str(xp))
-            else:
-                p.fillPath(path, QColor(c["surface2"]))
-            is_today = day == date.today()
-            p.setPen(QColor(c["accent"] if is_today else c["muted"]))
-            text = "сегодня" if is_today else f"{WEEKDAYS[day.weekday()]} {day.day}"
-            p.drawText(QRectF(i * slot, h - label_h, slot, label_h), Qt.AlignCenter, text)
-        p.end()
-
-
 class ProfileView(QScrollArea):
     def __init__(self, controller, db, parent=None):
         super().__init__(parent)
@@ -110,43 +49,50 @@ class ProfileView(QScrollArea):
         self.setWidgetResizable(True)
 
         host = QWidget()
+        host.setObjectName("page")
         root = QVBoxLayout(host)
-        root.setContentsMargins(14, 10, 14, 14)
-        root.setSpacing(14)
+        root.setContentsMargins(20, 4, 20, 20)
+        root.setSpacing(8)
 
-        # Герой
-        self.hero, hero_lay = panel("🧙 Персонаж")
-        self.hero_body = QHBoxLayout()
-        self.hero_body.setSpacing(18)
+        # Герой (по центру)
+        self.hero, hero_lay = card()
+        self.hero_body = QVBoxLayout()
+        self.hero_body.setSpacing(6)
         hero_lay.addLayout(self.hero_body)
         root.addWidget(self.hero)
+        root.addSpacing(10)
 
-        # Активность
-        act, act_lay = panel("📊 Опыт за 14 дней")
-        self.chart = ActivityChart()
-        act_lay.addWidget(self.chart)
-        root.addWidget(act)
-
-        # Навыки + журнал в одну строку
+        # Навыки + журнал
         row = QHBoxLayout()
-        row.setSpacing(14)
-        skills, skills_lay = panel("⚡ Навыки")
+        row.setSpacing(16)
+        left = QVBoxLayout()
+        left.setSpacing(6)
+        left.addWidget(section_title("Навыки"))
+        skills, skills_lay = card()
         self.skills_grid = QGridLayout()
         self.skills_grid.setHorizontalSpacing(12)
-        self.skills_grid.setVerticalSpacing(10)
+        self.skills_grid.setVerticalSpacing(12)
         skills_lay.addLayout(self.skills_grid)
-        skills_lay.addStretch(1)
-        log, log_lay = panel("📜 Журнал")
+        left.addWidget(skills)
+        left.addStretch(1)
+        right = QVBoxLayout()
+        right.setSpacing(6)
+        right.addWidget(section_title("Журнал"))
+        log, log_lay = card()
         self.log_box = QVBoxLayout()
-        self.log_box.setSpacing(6)
+        self.log_box.setSpacing(0)
         log_lay.addLayout(self.log_box)
-        log_lay.addStretch(1)
-        row.addWidget(skills, 3)
-        row.addWidget(log, 2)
+        right.addWidget(log)
+        right.addStretch(1)
+        row.addLayout(left, 3)
+        row.addLayout(right, 2)
         root.addLayout(row)
+        root.addSpacing(10)
 
         # Достижения
-        ach, ach_lay = panel("🏆 Достижения")
+        self.ach_title = section_title("Достижения")
+        root.addWidget(self.ach_title)
+        ach, ach_lay = card()
         self.ach_grid = QGridLayout()
         self.ach_grid.setSpacing(10)
         ach_lay.addLayout(self.ach_grid)
@@ -161,7 +107,6 @@ class ProfileView(QScrollArea):
         c = themes.colors()
         stats = self.controller.stats()
         self._fill_hero(stats, c)
-        self.chart.set_data(self.db.xp_per_day(14))
         self._fill_skills(stats, c)
         self._fill_log(c)
         self._fill_achievements(c)
@@ -169,72 +114,82 @@ class ProfileView(QScrollArea):
     def _fill_hero(self, stats: game.PlayerStats, c: dict) -> None:
         clear(self.hero_body)
         level, xp_in, xp_need = game.level_info(stats.total_xp)
-        self.hero_body.addWidget(avatar(self.db.get_setting(AVATAR_SETTING, "🧙"), 104))
 
-        col = QVBoxLayout()
-        col.setSpacing(6)
+        av = avatar(self.db.get_setting(AVATAR_SETTING, "🧙"), 96)
+        self.hero_body.addWidget(av, 0, Qt.AlignHCenter)
         name = QLabel(self.db.get_setting(NAME_SETTING, "Игрок"))
         name.setObjectName("h1")
+        name.setAlignment(Qt.AlignCenter)
         title = QLabel(f"Уровень {level} · {game.title_for_level(level)}")
-        title.setStyleSheet(f"color: {c['gold']}; font-weight: bold; font-size: 11pt;")
+        title.setObjectName("muted")
+        title.setAlignment(Qt.AlignCenter)
+        self.hero_body.addWidget(name)
+        self.hero_body.addWidget(title)
+
         bar = QProgressBar()
         bar.setTextVisible(False)
-        bar.setStyleSheet(themes.progress_style(c["accent"], c["accent2"], 14))
+        bar.setStyleSheet(themes.progress_style(c["accent"], 8))
         bar.setRange(0, xp_need)
         bar.setValue(xp_in)
-        hint = QLabel(f"{xp_in} / {xp_need} XP до следующего уровня")
+        bar.setFixedWidth(360)
+        hint = QLabel(f"{xp_in} / {xp_need} XP до уровня {level + 1}")
         hint.setObjectName("muted")
-        col.addWidget(name)
-        col.addWidget(title)
-        col.addWidget(bar)
-        col.addWidget(hint)
-        col.addStretch(1)
-        self.hero_body.addLayout(col, 1)
+        hint.setAlignment(Qt.AlignCenter)
+        hint.setStyleSheet("font-size: 8.5pt;")
+        self.hero_body.addSpacing(4)
+        self.hero_body.addWidget(bar, 0, Qt.AlignHCenter)
+        self.hero_body.addWidget(hint)
+        self.hero_body.addSpacing(10)
 
-        numbers = QGridLayout()
-        numbers.setSpacing(8)
+        numbers = QHBoxLayout()
+        numbers.setSpacing(10)
         tiles = [
-            ("✨", str(stats.total_xp), "всего опыта"),
-            ("⚔️", str(stats.completed), "квестов пройдено"),
-            ("🐉", str(stats.legendary), "легендарных"),
-            ("🔥", str(stats.streak), "дней подряд"),
-            ("⏰", str(stats.on_time), "в срок"),
-            ("💥", str(stats.best_day), "рекорд за день"),
+            (str(stats.total_xp), "всего XP"),
+            (str(stats.completed), "квестов"),
+            (str(stats.legendary), "легендарных"),
+            (str(stats.streak), "дн. подряд"),
+            (str(stats.on_time), "в срок"),
+            (str(stats.best_day), "рекорд за день"),
         ]
-        for i, (icon, value, caption) in enumerate(tiles):
-            numbers.addWidget(self._number_tile(icon, value, caption, c), i // 3, i % 3)
+        for value, caption in tiles:
+            numbers.addWidget(self._number_tile(value, caption))
         self.hero_body.addLayout(numbers)
 
     @staticmethod
-    def _number_tile(icon: str, value: str, caption: str, c: dict) -> QFrame:
+    def _number_tile(value: str, caption: str) -> QFrame:
         tile = QFrame()
-        tile.setStyleSheet(f"QFrame {{ background: {c['surface2']}; border-radius: 12px; }}")
-        tile.setMinimumWidth(118)
+        tile.setObjectName("tile")
         lay = QVBoxLayout(tile)
-        lay.setContentsMargins(12, 8, 12, 8)
+        lay.setContentsMargins(10, 8, 10, 8)
         lay.setSpacing(0)
-        top = QLabel(f"{icon}  <b style='font-size:15pt'>{value}</b>")
+        top = QLabel(value)
+        top.setAlignment(Qt.AlignCenter)
+        top.setStyleSheet("font-size: 17pt; font-weight: 800;")
         cap = QLabel(caption)
-        cap.setStyleSheet(f"color: {c['muted']}; font-size: 8pt;")
+        cap.setAlignment(Qt.AlignCenter)
+        cap.setObjectName("caption")
         lay.addWidget(top)
         lay.addWidget(cap)
         return tile
 
     def _fill_skills(self, stats: game.PlayerStats, c: dict) -> None:
         clear(self.skills_grid)
-        for row, (key, (name, icon, color)) in enumerate(game.SKILLS.items()):
+        for row, (key, (name, icon, _, _)) in enumerate(game.SKILLS.items()):
+            color = themes.skill_color(key)
             xp = stats.skill_xp.get(key, 0)
             level, xp_in, xp_need = game.skill_level_info(xp)
             label = QLabel(f"{icon}  {name}")
-            label.setStyleSheet("font-weight: 600;")
             label.setMinimumWidth(130)
             bar = QProgressBar()
             bar.setTextVisible(False)
-            bar.setStyleSheet(themes.progress_style(color, themes.mix(color, "#ffffff", 0.35), 9))
+            bar.setStyleSheet(themes.progress_style(color, 6))
             bar.setRange(0, xp_need)
             bar.setValue(xp_in)
             bar.setToolTip(f"{xp_in} / {xp_need} XP до следующего уровня навыка")
-            lvl = chip(f"Ур. {level}", color)
+            lvl = QLabel(f"ур. {level}")
+            lvl.setObjectName("muted")
+            lvl.setMinimumWidth(42)
+            lvl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.skills_grid.addWidget(label, row, 0)
             self.skills_grid.addWidget(bar, row, 1)
             self.skills_grid.addWidget(lvl, row, 2)
@@ -248,39 +203,44 @@ class ProfileView(QScrollArea):
             empty.setObjectName("muted")
             self.log_box.addWidget(empty)
             return
-        for e in events:
+        for i, e in enumerate(events):
             amount = e["amount"]
-            color = c["gold"] if amount > 0 else "#ef4f5f"
             icon = {"quest": game.skill_icon(e["skill"] or "other"), "daily": "🎯", "revoke": "↩️"}.get(e["kind"], "✨")
             line = QHBoxLayout()
+            line.setContentsMargins(0, 7, 0, 7)
             text = QLabel(f"{icon}  {e['note']}")
             text.setToolTip(e["ts"])
             text.setMinimumWidth(10)
             value = QLabel(f"{'+' if amount > 0 else ''}{amount} XP")
-            value.setStyleSheet(f"color: {color}; font-weight: bold;")
+            value.setStyleSheet(f"color: {c['gold'] if amount > 0 else c['danger']}; font-weight: 700;")
             line.addWidget(text, 1)
             line.addWidget(value)
             self.log_box.addLayout(line)
+            if i < len(events) - 1:
+                sep = QFrame()
+                sep.setObjectName("separator")
+                self.log_box.addWidget(sep)
 
     def _fill_achievements(self, c: dict) -> None:
         clear(self.ach_grid)
         unlocked = self.db.unlocked_achievements()
+        self.ach_title.setText(f"ДОСТИЖЕНИЯ · {len(unlocked)} ИЗ {len(game.ACHIEVEMENTS)}")
         columns = 4
         for i, ach in enumerate(game.ACHIEVEMENTS):
             got = ach.key in unlocked
             tile = QFrame()
-            border = c["gold"] if got else c["border"]
-            bg = themes.mix(c["surface2"], c["gold"], 0.10) if got else c["surface2"]
-            tile.setStyleSheet(f"QFrame {{ background: {bg}; border: 1px solid {border}; border-radius: 12px; }}"
-                               f" QLabel {{ border: none; background: transparent; }}")
+            tile.setObjectName("tile")
             lay = QHBoxLayout(tile)
-            lay.setContentsMargins(10, 8, 10, 8)
+            lay.setContentsMargins(10, 10, 10, 10)
             icon = QLabel(ach.icon if got else "🔒")
-            icon.setStyleSheet("font-size: 22px;")
+            icon.setAlignment(Qt.AlignCenter)
+            icon.setFixedSize(40, 40)
+            bg = themes.rgba(c["gold"], 0.18) if got else c["fill"]
+            icon.setStyleSheet(f"background: {bg}; border-radius: 20px; font-size: 20px;")
             text_col = QVBoxLayout()
             text_col.setSpacing(0)
             name = QLabel(ach.title)
-            name.setStyleSheet(f"font-weight: bold; color: {c['text'] if got else c['muted']};")
+            name.setStyleSheet(f"font-weight: 700; color: {c['text'] if got else c['muted']};")
             desc = QLabel(ach.description)
             desc.setWordWrap(True)
             desc.setStyleSheet(f"color: {c['muted']}; font-size: 8pt;")

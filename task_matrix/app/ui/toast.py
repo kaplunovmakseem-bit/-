@@ -1,9 +1,8 @@
 """
-Всплывающие уведомления («+78 XP», «Новый уровень!», «Достижение!»).
+Всплывающие уведомления в стиле баннеров iOS («+78 XP», «Новый уровень!»).
 
-Каждое уведомление — QFrame поверх главного окна в правом нижнем углу.
-Появляется с плавным выездом и исчезает через несколько секунд.
-Несколько уведомлений складываются стопкой.
+Баннер появляется сверху по центру окна, плавно «выезжает» вниз и через
+несколько секунд исчезает. Несколько баннеров складываются стопкой.
 """
 
 from __future__ import annotations
@@ -12,59 +11,60 @@ from PySide6.QtCore import (
     QEasingCurve, QParallelAnimationGroup, QPropertyAnimation,
     QSequentialAnimationGroup, Qt, QVariantAnimation,
 )
+
 from PySide6.QtWidgets import (
-    QFrame, QGraphicsOpacityEffect, QHBoxLayout, QLabel, QVBoxLayout, QWidget,
+    QFrame, QGraphicsOpacityEffect, QHBoxLayout,
+    QLabel, QVBoxLayout, QWidget,
 )
 
 from . import themes
 
-MARGIN = 18
-GAP = 10
+TOP = 14
+GAP = 8
 
 
 class Toast(QFrame):
-    def __init__(self, parent: QWidget, icon: str, title: str, subtitle: str,
-                 color: str, big: bool = False):
+    def __init__(self, parent: QWidget, icon: str, title: str, subtitle: str, color: str):
         super().__init__(parent)
         self.setObjectName("toast")
         self.setAttribute(Qt.WA_TransparentForMouseEvents)  # не мешает кликам
         c = themes.colors()
 
+        # Иконка «приложения» — цветной скруглённый квадрат
         icon_label = QLabel(icon)
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_size = 52 if big else 40
-        icon_label.setFixedSize(icon_size, icon_size)
-        icon_label.setStyleSheet(
-            f"background: {themes.rgba(color, 0.22)}; border-radius: {icon_size // 3}px;"
-            f" font-size: {int(icon_size * 0.5)}px;")
+        icon_label.setFixedSize(38, 38)
+        icon_label.setStyleSheet(f"background: {color}; border-radius: 9px; font-size: 19px;")
 
+        app_line = QLabel("LIFE RPG · сейчас")
+        app_line.setStyleSheet(f"color: {c['muted']}; font-size: 7.5pt; font-weight: 600;")
         title_label = QLabel(title)
-        title_label.setStyleSheet(
-            f"color: {color}; font-weight: 800; font-size: {15 if big else 11.5}pt;")
+        title_label.setStyleSheet(f"color: {c['text']}; font-weight: 700; font-size: 10.5pt;")
         sub_label = QLabel(subtitle)
-        sub_label.setStyleSheet(f"color: {c['text']}; font-size: 9pt;")
+        sub_label.setStyleSheet(f"color: {c['text']}; font-size: 9.5pt;")
         sub_label.setVisible(bool(subtitle))
 
         col = QVBoxLayout()
-        col.setSpacing(1)
+        col.setSpacing(0)
+        col.addWidget(app_line)
         col.addWidget(title_label)
         col.addWidget(sub_label)
 
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(12, 10, 18, 10)
+        lay.setContentsMargins(12, 10, 22, 10)
         lay.setSpacing(12)
         lay.addWidget(icon_label)
         lay.addLayout(col)
 
         self.setStyleSheet(f"""
             QFrame#toast {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {themes.mix(c['surface'], color, 0.18)}, stop:1 {c['surface']});
-                border: 1px solid {themes.rgba(color, 0.7)};
-                border-radius: 14px;
+                background: {themes.rgba(c['surface2'] if themes.is_dark() else c['surface'], 0.97)};
+                border: 1px solid {c['separator']};
+                border-radius: 18px;
             }}
             QLabel {{ background: transparent; }}
         """)
+        self.setMinimumWidth(340)
         self.opacity = QGraphicsOpacityEffect(self)
         self.opacity.setOpacity(0.0)
         self.setGraphicsEffect(self.opacity)
@@ -73,10 +73,10 @@ class Toast(QFrame):
 
 class ToastManager:
     """
-    Показывает уведомления и раскладывает их стопкой снизу вверх.
+    Показывает баннеры и раскладывает их стопкой сверху вниз.
 
-    Позицию анимируем не через QPropertyAnimation(b"pos"), а через смещение
-    toast.offset: Qt останавливает предыдущую анимацию того же свойства,
+    Сдвиг анимируем через toast.offset (QVariantAnimation), а не через
+    свойство pos: Qt останавливает предыдущую анимацию того же свойства,
     и при одновременных уведомлениях они бы «застревали».
     """
 
@@ -87,26 +87,25 @@ class ToastManager:
         self.toasts: list[Toast] = []
         self._anims = []  # держим ссылки, чтобы анимации не удалил сборщик мусора
 
-    def show(self, icon: str, title: str, subtitle: str = "", color: str = "#8b5cf6",
+    def show(self, icon: str, title: str, subtitle: str = "", color: str = "#007AFF",
              big: bool = False, duration_ms: int = 3200) -> None:
-        toast = Toast(self.host, icon, title, subtitle, color, big)
-        toast.offset = 24  # стартует чуть ниже и «выезжает» вверх
-        self.toasts.insert(0, toast)
-        # Слишком много уведомлений — самое старое убираем сразу
+        toast = Toast(self.host, icon, title, subtitle, color)
+        toast.offset = -30  # стартует чуть выше и «выезжает» вниз
+        self.toasts.append(toast)
         while len(self.toasts) > self.MAX_VISIBLE:
-            self._discard(self.toasts[-1])
+            self._discard(self.toasts[0])
         toast.show()
         toast.raise_()
         self.reposition()
 
         fade_in = QPropertyAnimation(toast.opacity, b"opacity")
-        fade_in.setDuration(260)
+        fade_in.setDuration(220)
         fade_in.setStartValue(0.0)
         fade_in.setEndValue(1.0)
 
         slide = QVariantAnimation()
-        slide.setDuration(380)
-        slide.setStartValue(24)
+        slide.setDuration(420)
+        slide.setStartValue(-30)
         slide.setEndValue(0)
         slide.setEasingCurve(QEasingCurve.OutBack)
         slide.valueChanged.connect(lambda v, t=toast: self._set_offset(t, v))
@@ -116,13 +115,13 @@ class ToastManager:
         appear.addAnimation(slide)
 
         fade_out = QPropertyAnimation(toast.opacity, b"opacity")
-        fade_out.setDuration(400)
+        fade_out.setDuration(350)
         fade_out.setStartValue(1.0)
         fade_out.setEndValue(0.0)
 
         seq = QSequentialAnimationGroup()
         seq.addAnimation(appear)
-        seq.addPause(duration_ms)
+        seq.addPause(duration_ms + (1200 if big else 0))
         seq.addAnimation(fade_out)
         seq.finished.connect(lambda t=toast: self._discard(t))
         toast.anim = seq
@@ -146,9 +145,8 @@ class ToastManager:
         self.reposition()
 
     def reposition(self) -> None:
-        """Ставит уведомления в правый нижний угол, новые — снизу."""
-        y = self.host.height() - MARGIN
+        """Баннеры по центру сверху, новые — ниже предыдущих."""
+        y = TOP
         for t in self.toasts:
-            y -= t.height()
-            t.move(self.host.width() - t.width() - MARGIN, y + getattr(t, "offset", 0))
-            y -= GAP
+            t.move((self.host.width() - t.width()) // 2, y + getattr(t, "offset", 0))
+            y += t.height() + GAP

@@ -29,7 +29,7 @@ def main() -> int:
         app.installTranslator(translator)
 
     db = Database(config.db_path())
-    themes.apply_theme(app, db.get_setting(THEME_SETTING, themes.DARK))
+    themes.apply_theme(app, db.get_setting(THEME_SETTING, themes.LIGHT))
 
     window = MainWindow(db)
     window.show()

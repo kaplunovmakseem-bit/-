@@ -15,12 +15,14 @@ from typing import Optional
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QSortFilterProxyModel, Qt
 from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import (
-    QAbstractItemView, QComboBox, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QAbstractItemView, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QMenu, QTableView, QVBoxLayout, QWidget,
 )
 
 from .. import config, game
 from ..models import Task
+from . import themes
+from .ios import Segmented
 
 # Номера столбцов
 COL_DONE, COL_TITLE, COL_SKILL, COL_ZONE, COL_IMP, COL_DIFF, COL_XP, COL_DUE, COL_CREATED = range(9)
@@ -112,16 +114,15 @@ class TaskTableModel(QAbstractTableModel):
 
         # Просроченные — красным, выполненные — зачёркнуты
         if role == Qt.ForegroundRole:
-            if col == COL_ZONE:
-                return QColor(config.ZONE_COLORS[t.zone])
-            if col == COL_SKILL:
-                return QColor(game.skill_color(t.skill))
-            if col == COL_XP:
-                return QColor("#f5b83d")
-            if col == COL_DIFF:
-                return QColor(game.rarity(t.difficulty)[1])
+            c = themes.colors()
             if t.is_overdue:
-                return QColor(config.OVERDUE_COLOR)
+                return QColor(c["danger"])
+            if t.done:
+                return QColor(c["muted"])
+            if col == COL_XP:
+                return QColor(c["gold"])
+            if col in (COL_CREATED, COL_ZONE, COL_SKILL):
+                return QColor(c["muted"])
         if role == Qt.FontRole:
             font = QFont()
             if t.done and col == COL_TITLE:
@@ -182,21 +183,21 @@ class TaskTableView(QWidget):
 
         # --- Панель фильтров ---
         self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("🔍  Поиск по названию…  (Ctrl+F)")
+        self.search_edit.setPlaceholderText("🔍  Поиск  (Ctrl+F)")
+        self.search_edit.setMinimumHeight(36)
         self.search_edit.setClearButtonEnabled(True)
 
-        self.status_combo = QComboBox()
-        self.status_combo.addItem("Активные", FILTER_ACTIVE)
-        self.status_combo.addItem("Выполненные", FILTER_DONE)
-        self.status_combo.addItem("Все", FILTER_ALL)
+        # Сегментированный переключатель iOS вместо выпадающего списка
+        self.status_filter = Segmented([("Активные", FILTER_ACTIVE), ("Выполненные", FILTER_DONE),
+                                        ("Все", FILTER_ALL)])
 
         self.count_label = QLabel()
         self.count_label.setObjectName("muted")
 
         bar = QHBoxLayout()
+        bar.setSpacing(12)
         bar.addWidget(self.search_edit, 1)
-        bar.addWidget(QLabel("Показать:"))
-        bar.addWidget(self.status_combo)
+        bar.addWidget(self.status_filter)
         bar.addWidget(self.count_label)
 
         # --- Таблица ---
@@ -211,9 +212,10 @@ class TaskTableView(QWidget):
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.table.setAlternatingRowColors(True)
+        self.table.setAlternatingRowColors(False)
+        self.table.setFocusPolicy(Qt.NoFocus)
         self.table.verticalHeader().hide()
-        self.table.verticalHeader().setDefaultSectionSize(38)
+        self.table.verticalHeader().setDefaultSectionSize(44)
         self.table.setShowGrid(False)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
         hdr = self.table.horizontalHeader()
@@ -221,20 +223,22 @@ class TaskTableView(QWidget):
         hdr.setSectionResizeMode(COL_TITLE, QHeaderView.Stretch)
 
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(14, 10, 14, 14)
+        self.setObjectName("page")
+        lay.setContentsMargins(20, 0, 20, 16)
         lay.setSpacing(10)
         lay.addLayout(bar)
         lay.addWidget(self.table, 1)
 
         # --- Сигналы ---
         self.search_edit.textChanged.connect(self._on_filter_changed)
-        self.status_combo.currentIndexChanged.connect(self._on_filter_changed)
+        self.status_filter.changed.connect(self._on_filter_changed)
         self.table.doubleClicked.connect(self._on_double_click)
         self.table.customContextMenuRequested.connect(self._on_context_menu)
         controller.tasks_changed.connect(self.refresh)
+        self.restyle()
 
     def _on_filter_changed(self) -> None:
-        self.proxy.set_status(self.status_combo.currentData())
+        self.proxy.set_status(self.status_filter.value())
         self.proxy.set_search(self.search_edit.text())
         self._update_count()
 
@@ -259,14 +263,22 @@ class TaskTableView(QWidget):
         if task_id is None:
             return
         menu = QMenu(self)
-        act_edit = menu.addAction("✏️  Редактировать…")
+        act_edit = menu.addAction("Редактировать…")
         menu.addSeparator()
-        act_del = menu.addAction("🗑️  Удалить…")
+        act_del = menu.addAction("Удалить…")
         chosen = menu.exec(self.table.viewport().mapToGlobal(pos))
         if chosen is act_edit:
             self.controller.edit_task(task_id)
         elif chosen is act_del:
             self.controller.delete_task(task_id)
+
+    def restyle(self) -> None:
+        c = themes.colors()
+        # Поле поиска iOS — серая «таблетка» на сером фоне страницы
+        self.search_edit.setStyleSheet(f"QLineEdit {{ background: {c['fill']}; border: 1px solid transparent; }}"
+                                       f"QLineEdit:focus {{ border: 1px solid {c['accent']}; }}")
+        self.status_filter.restyle()
+        self.table.viewport().update()
 
     def selected_task_id(self) -> Optional[int]:
         rows = self.table.selectionModel().selectedRows()
